@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "Painel Ecommerce"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "8f1af2a2-e745-490c-84eb-87a2e6690a5b"
+  }
+}
