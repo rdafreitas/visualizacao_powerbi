@@ -1,9 +1,20 @@
 model Model
 	culture: pt-BR
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: pt-BR
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
 
 annotation PBI_ProTooling = ["DevMode"]
 
-annotation PBIDesktopVersion = 2.146.1026.0 (25.08)+fb98ab832373de81dccd5c01cd96306a48477556
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_QueryOrder = ["vendas_ecommerce"]
+
+ref table vendas_ecommerce
+ref table DateTableTemplate_b5d6adb6-eb43-49ae-a50b-e75f0da8ea3e
+ref table LocalDateTable_945f7127-eb81-474c-818a-40571cfa3b55
 
 ref cultureInfo pt-BR
 

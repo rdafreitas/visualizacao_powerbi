@@ -1,0 +1,5 @@
+relationship 8282f21a-6e74-4a03-bfe1-db49bf4e81b6
+	joinOnDateBehavior: datePartOnly
+	fromColumn: vendas_ecommerce.data_venda
+	toColumn: LocalDateTable_945f7127-eb81-474c-818a-40571cfa3b55.Date
+
