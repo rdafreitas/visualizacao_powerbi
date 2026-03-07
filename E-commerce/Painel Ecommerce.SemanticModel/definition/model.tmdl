@@ -6,15 +6,16 @@ model Model
 		legacyRedirects
 		returnErrorValuesAsNull
 
-annotation PBI_ProTooling = ["DevMode"]
+annotation PBI_ProTooling = ["DevMode","MCP-PBIModeling"]
 
 annotation __PBI_TimeIntelligenceEnabled = 1
 
-annotation PBI_QueryOrder = ["vendas_ecommerce"]
+annotation PBI_QueryOrder = ["vendas_ecommerce","Medidas"]
 
 ref table vendas_ecommerce
 ref table DateTableTemplate_b5d6adb6-eb43-49ae-a50b-e75f0da8ea3e
 ref table LocalDateTable_945f7127-eb81-474c-818a-40571cfa3b55
+ref table Medidas
 
 ref cultureInfo pt-BR
 

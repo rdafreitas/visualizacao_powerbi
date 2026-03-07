@@ -1,0 +1,42 @@
+table Medidas
+	lineageTag: 9a1b25fc-c8ea-4cf5-a841-40d0108e1537
+
+	measure 'Receita - Total' = SUM(vendas_ecommerce[valores_venda])
+		displayFolder: 00. Principal
+		lineageTag: 31f13e87-605b-47ac-8cfb-43f4d743355f
+
+	measure 'Vendas - Total' = SUM(vendas_ecommerce[quantidade])
+		displayFolder: 00. Principal
+		lineageTag: 020917ef-d10a-4ef3-94ce-c1df8bf6308a
+
+	measure 'Receita - Média' = AVERAGE(vendas_ecommerce[valores_venda])
+		displayFolder: 00. Principal
+		lineageTag: 42743178-f12f-4f26-b652-b2b8a68b2ef9
+
+	measure 'Pedidos - Total' = DISTINCTCOUNT(vendas_ecommerce[id_pedido])
+		displayFolder: 00. Principal
+		lineageTag: 7942a7f0-852d-40f8-bc2c-9d32c12c616a
+
+	measure 'Clientes - Total' = DISTINCTCOUNT(vendas_ecommerce[ids_cliente])
+		displayFolder: 00. Principal
+		lineageTag: 18758843-f964-4db2-88e8-d94f722b524f
+
+	column 'Coluna 1'
+		dataType: string
+		lineageTag: df7ad516-61b4-4b57-b657-15dd124ff09a
+		summarizeBy: none
+		sourceColumn: Coluna 1
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Medidas = m
+		mode: import
+		source =
+				let
+				    Fonte = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"Coluna 1" = _t]),
+				    #"Tipo Alterado" = Table.TransformColumnTypes(Fonte,{{"Coluna 1", type text}})
+				in
+				    #"Tipo Alterado"
+
+	annotation PBI_ResultType = Table
+
