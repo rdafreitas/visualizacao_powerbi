@@ -1,0 +1,117 @@
+table vendas_ecommerce
+	lineageTag: 185baf9a-9951-42e5-b5b5-a458d4a2fb7c
+
+	column id_pedido
+		dataType: int64
+		formatString: 0
+		lineageTag: d74da057-3feb-43fe-a7bc-ed8358ce60dc
+		summarizeBy: sum
+		sourceColumn: id_pedido
+
+		annotation SummarizationSetBy = Automatic
+
+	column data_venda
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: a3ec8af9-6c8b-4188-825f-8de19d1fca0a
+		summarizeBy: none
+		sourceColumn: data_venda
+
+		variation Variation
+			isDefault
+			relationship: 14de1c0e-9fa5-4419-9ee6-0637ec8f4bd0
+			defaultHierarchy: LocalDateTable_2c5416ae-a0be-44af-9895-bf2bed9be75f.'Hierarquia de datas'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column ids_cliente
+		dataType: int64
+		formatString: 0
+		lineageTag: 50e2c50d-8e14-4986-bcba-6cb68e35954e
+		summarizeBy: sum
+		sourceColumn: ids_cliente
+
+		annotation SummarizationSetBy = Automatic
+
+	column idade_cliente
+		dataType: int64
+		formatString: 0
+		lineageTag: 7828232d-d658-4399-bb6e-f6a5f724d485
+		summarizeBy: sum
+		sourceColumn: idade_cliente
+
+		annotation SummarizationSetBy = Automatic
+
+	column produto
+		dataType: string
+		lineageTag: f26d7793-a23d-489b-a53c-26a736cd3c0a
+		summarizeBy: none
+		sourceColumn: produto
+
+		annotation SummarizationSetBy = Automatic
+
+	column categoria
+		dataType: string
+		lineageTag: fb179467-c7a3-449e-8b5f-031672ae57d8
+		summarizeBy: none
+		sourceColumn: categoria
+
+		annotation SummarizationSetBy = Automatic
+
+	column quantidade
+		dataType: int64
+		formatString: 0
+		lineageTag: 13ca0c55-4684-4bfa-86f6-ce754541f632
+		summarizeBy: sum
+		sourceColumn: quantidade
+
+		annotation SummarizationSetBy = Automatic
+
+	column valor_unitario
+		dataType: int64
+		formatString: 0
+		lineageTag: 7859ea67-7e52-4cd0-8c43-ee2a392eca82
+		summarizeBy: sum
+		sourceColumn: valor_unitario
+
+		annotation SummarizationSetBy = Automatic
+
+	column valores_venda
+		dataType: int64
+		formatString: 0
+		lineageTag: fd794e8c-f62d-4f1b-b5d6-b818f06d2bde
+		summarizeBy: sum
+		sourceColumn: valores_venda
+
+		annotation SummarizationSetBy = Automatic
+
+	column estado
+		dataType: string
+		lineageTag: 2e5b7caf-fda7-4e5e-8720-ccfdee0008b2
+		summarizeBy: none
+		sourceColumn: estado
+
+		annotation SummarizationSetBy = Automatic
+
+	column feedback
+		dataType: string
+		lineageTag: d143089b-c282-4e68-a845-d5914c9070ec
+		summarizeBy: none
+		sourceColumn: feedback
+
+		annotation SummarizationSetBy = Automatic
+
+	partition vendas_ecommerce = m
+		mode: import
+		source =
+				let
+				    Fonte = Csv.Document(File.Contents("E:\4.Profissional\Projetos\02. Visualizações em Power BI\visualizacao_powerbi\E-commerce\vendas_ecommerce.csv"),[Delimiter=",", Columns=11, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+				    #"Cabeçalhos Promovidos" = Table.PromoteHeaders(Fonte, [PromoteAllScalars=true]),
+				    #"Tipo Alterado" = Table.TransformColumnTypes(#"Cabeçalhos Promovidos",{{"id_pedido", Int64.Type}, {"data_venda", type date}, {"ids_cliente", Int64.Type}, {"idade_cliente", Int64.Type}, {"produto", type text}, {"categoria", type text}, {"quantidade", Int64.Type}, {"valor_unitario", Int64.Type}, {"valores_venda", Int64.Type}, {"estado", type text}, {"feedback", type text}})
+				in
+				    #"Tipo Alterado"
+
+	annotation PBI_ResultType = Table
+

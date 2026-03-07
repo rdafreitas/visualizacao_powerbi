@@ -10,5 +10,11 @@ annotation __PBI_TimeIntelligenceEnabled = 1
 
 annotation PBI_ProTooling = ["DevMode"]
 
+annotation PBI_QueryOrder = ["vendas_ecommerce"]
+
+ref table vendas_ecommerce
+ref table DateTableTemplate_c1b84020-0844-47bc-a5a6-920b95e08148
+ref table LocalDateTable_2c5416ae-a0be-44af-9895-bf2bed9be75f
+
 ref cultureInfo pt-BR
 
