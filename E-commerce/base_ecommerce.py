@@ -23,22 +23,32 @@ quantidades = np.random.randint(1, 6, n_registros)
 valores_unitarios = np.random.uniform(50, 2000, n_registros)
 valores_venda = quantidades * valores_unitarios
 
+# round the monetary values to 2 decimal places for better compression/performance
+valores_unitarios = np.round(valores_unitarios, 2)
+valores_venda = np.round(valores_venda, 2)
+
 estados = ['CA', 'NY', 'TX', 'FL', 'IL']
 estados_venda = np.random.choice(estados, n_registros)
 
 idades_cliente = np.random.randint(18, 80, n_registros)
 
+# build dataframe with explicit types where possible
+# convert string columns to category to shrink memory and signal low cardinality
+productos_ser = pd.Categorical(produtos_vendidos)
+categorias_ser = pd.Categorical(categorias_vendidas)
+estados_ser = pd.Categorical(estados_venda)
+
 df = pd.DataFrame({
-    'id_pedido': range(1, n_registros + 1),
-    'data_venda': datas_venda,
-    'ids_cliente': ids_cliente,
-    'idade_cliente': idades_cliente,
-    'produto': produtos_vendidos,
-    'categoria': categorias_vendidas,
-    'quantidade': quantidades,
-    'valor_unitario': valores_unitarios,
-    'valores_venda': valores_venda,
-    'estado': estados_venda
+    'id_pedido': pd.Series(range(1, n_registros + 1), dtype='int32'),
+    'data_venda': pd.Series(datas_venda, dtype='datetime64[ns]'),
+    'ids_cliente': pd.Series(ids_cliente, dtype='int32'),
+    'idade_cliente': pd.Series(idades_cliente, dtype='int16'),
+    'produto': productos_ser,
+    'categoria': categorias_ser,
+    'quantidade': pd.Series(quantidades, dtype='int8'),
+    'valor_unitario': pd.Series(valores_unitarios, dtype='float32'),
+    'valores_venda': pd.Series(valores_venda, dtype='float32'),
+    'estado': estados_ser
 })
 
 feedbacks_positivos = [
