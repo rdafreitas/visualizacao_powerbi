@@ -21,22 +21,15 @@ table Medidas
 		displayFolder: 00. Principal
 		lineageTag: 18758843-f964-4db2-88e8-d94f722b524f
 
-	column 'Coluna 1'
-		dataType: string
-		lineageTag: df7ad516-61b4-4b57-b657-15dd124ff09a
-		summarizeBy: none
-		sourceColumn: Coluna 1
-
-		annotation SummarizationSetBy = Automatic
-
 	partition Medidas = m
 		mode: import
 		source =
 				let
 				    Fonte = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"Coluna 1" = _t]),
-				    #"Tipo Alterado" = Table.TransformColumnTypes(Fonte,{{"Coluna 1", type text}})
+				    #"Tipo Alterado" = Table.TransformColumnTypes(Fonte,{{"Coluna 1", type text}}),
+				    #"Colunas Removidas" = Table.RemoveColumns(#"Tipo Alterado",{"Coluna 1"})
 				in
-				    #"Tipo Alterado"
+				    #"Colunas Removidas"
 
 	annotation PBI_ResultType = Table
 
