@@ -37,6 +37,17 @@
           "type": "BaseTheme"
         }
       ]
+    },
+    {
+      "name": "RegisteredResources",
+      "type": "RegisteredResources",
+      "items": [
+        {
+          "name": "Layout02240790626614997.png",
+          "path": "Layout02240790626614997.png",
+          "type": "Image"
+        }
+      ]
     }
   ],
   "settings": {
