@@ -1,6 +1,6 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.6.0/schema.json",
-  "name": "4a21202d97736bb26593",
+  "name": "linha_titulo",
   "position": {
     "x": 313.17225253312546,
     "y": 39.719407638347619,
@@ -19,6 +19,13 @@
               "expr": {
                 "Literal": {
                   "Value": "'line'"
+                }
+              }
+            },
+            "linecapType": {
+              "expr": {
+                "Literal": {
+                  "Value": "'round'"
                 }
               }
             }
@@ -51,6 +58,13 @@
                   }
                 }
               }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "22D"
+                }
+              }
             }
           },
           "selector": {
@@ -70,6 +84,20 @@
                       "Percent": 0
                     }
                   }
+                }
+              }
+            },
+            "weight": {
+              "expr": {
+                "Literal": {
+                  "Value": "5D"
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "30D"
                 }
               }
             }
