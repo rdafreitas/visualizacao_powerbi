@@ -1,12 +1,12 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.6.0/schema.json",
-  "name": "matriz",
+  "name": "765d0a8ddd0bbac5d203",
   "position": {
-    "x": 668.74773139745923,
+    "x": 823.48457350272236,
     "y": 177.85843920145192,
     "z": 6002,
     "height": 220.54446460980037,
-    "width": 311.25226860254088,
+    "width": 435.75317604355718,
     "tabOrder": 6002
   },
   "visual": {
@@ -44,6 +44,21 @@
               "queryRef": "vendas_ecommerce.estado",
               "nativeQueryRef": "estado",
               "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "vendas_ecommerce"
+                    }
+                  },
+                  "Property": "produto"
+                }
+              },
+              "queryRef": "vendas_ecommerce.produto",
+              "nativeQueryRef": "produto",
+              "active": false
             }
           ]
         },
@@ -67,9 +82,50 @@
               },
               "queryRef": "Sum(vendas_ecommerce.valores_venda)",
               "nativeQueryRef": "Soma de valores_venda"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "vendas_ecommerce"
+                        }
+                      },
+                      "Property": "valor_unitario"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(vendas_ecommerce.valor_unitario)",
+              "nativeQueryRef": "Soma de valor_unitario"
             }
           ]
         }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Aggregation": {
+                "Expression": {
+                  "Column": {
+                    "Expression": {
+                      "SourceRef": {
+                        "Entity": "vendas_ecommerce"
+                      }
+                    },
+                    "Property": "valores_venda"
+                  }
+                },
+                "Function": 0
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
       }
     },
     "expansionStates": [
@@ -103,6 +159,12 @@
             ],
             "isCollapsed": true,
             "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "vendas_ecommerce.produto"
+            ],
+            "isCollapsed": true
           }
         ],
         "root": {
@@ -116,11 +178,88 @@
                 }
               ],
               "isToggled": true
+            },
+            {
+              "identityValues": [
+                {
+                  "Literal": {
+                    "Value": "'Eletrônicos'"
+                  }
+                }
+              ],
+              "isToggled": true
             }
           ]
         }
       }
     ],
+    "objects": {
+      "columnFormatting": [
+        {
+          "properties": {
+            "dataBars": {
+              "positiveColor": {
+                "solid": {
+                  "color": {
+                    "expr": {
+                      "Literal": {
+                        "Value": "'maxColor'"
+                      }
+                    }
+                  }
+                }
+              },
+              "negativeColor": {
+                "solid": {
+                  "color": {
+                    "expr": {
+                      "Literal": {
+                        "Value": "'minColor'"
+                      }
+                    }
+                  }
+                }
+              },
+              "axisColor": {
+                "solid": {
+                  "color": {
+                    "expr": {
+                      "Literal": {
+                        "Value": "'foreground'"
+                      }
+                    }
+                  }
+                }
+              },
+              "reverseDirection": {
+                "expr": {
+                  "Literal": {
+                    "Value": "false"
+                  }
+                }
+              },
+              "hideText": {
+                "expr": {
+                  "Literal": {
+                    "Value": "false"
+                  }
+                }
+              },
+              "totalMatchingOption": {
+                "expr": {
+                  "Literal": {
+                    "Value": "1L"
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sum(vendas_ecommerce.valores_venda)"
+          }
+        }
+      ]
+    },
     "visualContainerObjects": {
       "border": [
         {
@@ -193,6 +332,39 @@
           }
         },
         "type": "Categorical"
+      },
+      {
+        "name": "df19b2b6500844d3da75",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "vendas_ecommerce"
+              }
+            },
+            "Property": "produto"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "326ef67634a9299a69a7",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "vendas_ecommerce"
+                  }
+                },
+                "Property": "valor_unitario"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
       }
     ]
   }
