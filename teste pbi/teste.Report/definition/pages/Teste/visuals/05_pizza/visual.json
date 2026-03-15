@@ -1,0 +1,122 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.6.0/schema.json",
+  "name": "3a3045d0ad051a79938d",
+  "position": {
+    "x": 314.69992205767733,
+    "y": 847.85658612626651,
+    "z": 6006,
+    "height": 219.98441153546375,
+    "width": 438.44115354637569,
+    "tabOrder": 6006
+  },
+  "visual": {
+    "visualType": "pieChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "vendas_ecommerce"
+                    }
+                  },
+                  "Property": "categoria"
+                }
+              },
+              "queryRef": "vendas_ecommerce.categoria",
+              "nativeQueryRef": "categoria",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "vendas_ecommerce"
+                        }
+                      },
+                      "Property": "valores_venda"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(vendas_ecommerce.valores_venda)",
+              "nativeQueryRef": "Soma de valores_venda"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Aggregation": {
+                "Expression": {
+                  "Column": {
+                    "Expression": {
+                      "SourceRef": {
+                        "Entity": "vendas_ecommerce"
+                      }
+                    },
+                    "Property": "valores_venda"
+                  }
+                },
+                "Function": 0
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "5cbd5c3a06c05622305b",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "vendas_ecommerce"
+              }
+            },
+            "Property": "categoria"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "55f5c8ed09a9e1670158",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "vendas_ecommerce"
+                  }
+                },
+                "Property": "valores_venda"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  }
+}

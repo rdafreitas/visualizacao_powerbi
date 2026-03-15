@@ -1,0 +1,122 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.6.0/schema.json",
+  "name": "f2dbc59dc62890071db6",
+  "position": {
+    "x": 800.49883086515979,
+    "y": 847.85658612626651,
+    "z": 6007,
+    "height": 219.98441153546375,
+    "width": 435.385814497272,
+    "tabOrder": 6007
+  },
+  "visual": {
+    "visualType": "donutChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "vendas_ecommerce"
+                    }
+                  },
+                  "Property": "produto"
+                }
+              },
+              "queryRef": "vendas_ecommerce.produto",
+              "nativeQueryRef": "produto",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "vendas_ecommerce"
+                        }
+                      },
+                      "Property": "quantidade"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(vendas_ecommerce.quantidade)",
+              "nativeQueryRef": "Soma de quantidade"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Aggregation": {
+                "Expression": {
+                  "Column": {
+                    "Expression": {
+                      "SourceRef": {
+                        "Entity": "vendas_ecommerce"
+                      }
+                    },
+                    "Property": "quantidade"
+                  }
+                },
+                "Function": 0
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "80f474f11c0c13334717",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "vendas_ecommerce"
+              }
+            },
+            "Property": "produto"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "5ef917f4a0dc9ba531b0",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "vendas_ecommerce"
+                  }
+                },
+                "Property": "quantidade"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  }
+}

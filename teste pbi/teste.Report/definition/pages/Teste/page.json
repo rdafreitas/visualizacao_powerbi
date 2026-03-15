@@ -67,6 +67,16 @@
       "source": "filtro_estado",
       "target": "765d0a8ddd0bbac5d203",
       "type": "NoFilter"
+    },
+    {
+      "source": "filtro_categoria",
+      "target": "3a3045d0ad051a79938d",
+      "type": "NoFilter"
+    },
+    {
+      "source": "filtro_categoria",
+      "target": "f2dbc59dc62890071db6",
+      "type": "NoFilter"
     }
   ]
 }
