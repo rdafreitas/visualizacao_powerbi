@@ -46,5 +46,27 @@
         }
       }
     ]
-  }
+  },
+  "visualInteractions": [
+    {
+      "source": "filtro_categoria",
+      "target": "24fb0e672ec8a8219130",
+      "type": "NoFilter"
+    },
+    {
+      "source": "filtro_estado",
+      "target": "24fb0e672ec8a8219130",
+      "type": "NoFilter"
+    },
+    {
+      "source": "filtro_categoria",
+      "target": "765d0a8ddd0bbac5d203",
+      "type": "NoFilter"
+    },
+    {
+      "source": "filtro_estado",
+      "target": "765d0a8ddd0bbac5d203",
+      "type": "NoFilter"
+    }
+  ]
 }

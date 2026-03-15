@@ -1,0 +1,199 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.6.0/schema.json",
+  "name": "matriz",
+  "position": {
+    "x": 668.74773139745923,
+    "y": 177.85843920145192,
+    "z": 6002,
+    "height": 220.54446460980037,
+    "width": 311.25226860254088,
+    "tabOrder": 6002
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "query": {
+      "queryState": {
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "vendas_ecommerce"
+                    }
+                  },
+                  "Property": "categoria"
+                }
+              },
+              "queryRef": "vendas_ecommerce.categoria",
+              "nativeQueryRef": "categoria",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "vendas_ecommerce"
+                    }
+                  },
+                  "Property": "estado"
+                }
+              },
+              "queryRef": "vendas_ecommerce.estado",
+              "nativeQueryRef": "estado",
+              "active": true
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "vendas_ecommerce"
+                        }
+                      },
+                      "Property": "valores_venda"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(vendas_ecommerce.valores_venda)",
+              "nativeQueryRef": "Soma de valores_venda"
+            }
+          ]
+        }
+      }
+    },
+    "expansionStates": [
+      {
+        "roles": [
+          "Rows"
+        ],
+        "levels": [
+          {
+            "queryRefs": [
+              "vendas_ecommerce.categoria"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "vendas_ecommerce"
+                    }
+                  },
+                  "Property": "categoria"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "vendas_ecommerce.estado"
+            ],
+            "isCollapsed": true,
+            "isPinned": true
+          }
+        ],
+        "root": {
+          "children": [
+            {
+              "identityValues": [
+                {
+                  "Literal": {
+                    "Value": "'Acessórios'"
+                  }
+                }
+              ],
+              "isToggled": true
+            }
+          ]
+        }
+      }
+    ],
+    "visualContainerObjects": {
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "radius": {
+              "expr": {
+                "Literal": {
+                  "Value": "10D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "a01075748274c0378060",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "vendas_ecommerce"
+              }
+            },
+            "Property": "categoria"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "5aec4fcbed5d7d43edaa",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "vendas_ecommerce"
+                  }
+                },
+                "Property": "valores_venda"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "c4bec8e679a01248cd30",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "vendas_ecommerce"
+              }
+            },
+            "Property": "estado"
+          }
+        },
+        "type": "Categorical"
+      }
+    ]
+  }
+}

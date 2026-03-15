@@ -272,5 +272,23 @@
       ]
     },
     "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "7088238610733ecb7d3c",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "vendas_ecommerce"
+              }
+            },
+            "Property": "categoria"
+          }
+        },
+        "type": "Categorical"
+      }
+    ]
   }
 }
