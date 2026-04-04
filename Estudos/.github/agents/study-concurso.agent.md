@@ -28,20 +28,20 @@ Você utiliza as skills `study-*` disponíveis no workspace (`.github/skills/stu
 
 Mantenha e atualize estas variáveis ao longo de toda a execução:
 
-| Variável | Definida em | Descrição |
-|----------|-------------|-----------|
-| `pdf_path` | Fase 0 — Setup | Caminho completo do PDF de entrada |
-| `output_dir` | Fase 0 — Setup | Pasta de trabalho para todos os arquivos gerados |
-| `materia` | Fase 0 — Setup | Nome da matéria (ex.: `Direito Constitucional`) |
-| `banca` | Fase 0 — Setup | Banca organizadora (ex.: `CESPE`, `FGV`) — opcional |
-| `md_path` | Fase 1 — PDF→MD | Caminho do `.md` gerado pelo `study-pdf-to-md` |
-| `materia_md` | Fase 2 — Split | Caminho do `_materia.md` gerado pelo `study-split-md` |
-| `questoes_md` | Fase 2 — Split | Caminho do `_questoes.md` (se existir) |
-| `topicos_txt` | Fase 3 — Tópicos | Caminho do `_topicos.txt` gerado pelo `study-formatar-topicos` |
-| `gdoc_url` | Fase 3 — Tópicos | URL do Google Doc criado pelo `create_gdoc.py` |
-| `credentials_json` | Fase 3 — Tópicos | Caminho do `credentials.json` do Google |
-| `relevancia_md` | Fase 4 — Relevância | Caminho do `_relevancia.md` gerado |
-| `deck_anki` | Fase 5 — Anki | Nome do deck no Anki (padrão: `Concursos`) |
+| Variável           | Definida em         | Descrição                                                      |
+| ------------------ | ------------------- | -------------------------------------------------------------- |
+| `pdf_path`         | Fase 0 — Setup      | Caminho completo do PDF de entrada                             |
+| `output_dir`       | Fase 0 — Setup      | Pasta de trabalho para todos os arquivos gerados               |
+| `materia`          | Fase 0 — Setup      | Nome da matéria (ex.: `Direito Constitucional`)                |
+| `banca`            | Fase 0 — Setup      | Banca organizadora (ex.: `CESPE`, `FGV`) — opcional            |
+| `md_path`          | Fase 1 — PDF→MD     | Caminho do `.md` gerado pelo `study-pdf-to-md`                 |
+| `materia_md`       | Fase 2 — Split      | Caminho do `_materia.md` gerado pelo `study-split-md`          |
+| `questoes_md`      | Fase 2 — Split      | Caminho do `_questoes.md` (se existir)                         |
+| `topicos_txt`      | Fase 3 — Tópicos    | Caminho do `_topicos.txt` gerado pelo `study-formatar-topicos` |
+| `gdoc_url`         | Fase 3 — Tópicos    | URL do Google Doc criado pelo `create_gdoc.py`                 |
+| `credentials_json` | Fase 3 — Tópicos    | Caminho do `credentials.json` do Google                        |
+| `relevancia_md`    | Fase 4 — Relevância | Caminho do `_relevancia.md` gerado                             |
+| `deck_anki`        | Fase 5 — Anki       | Nome do deck no Anki (padrão: `Concursos`)                     |
 
 ---
 
@@ -122,19 +122,20 @@ Esta fase é **acionada sob demanda** pelo usuário — pode ser executada após
 
 ## Mensagens Padrão de Conclusão por Fase
 
-| Fase | Mensagem |
-|------|---------|
-| Fase 1 | `✅ PDF convertido: {md_path}` |
-| Fase 2 | `✅ Separação concluída. Matéria: {materia_md} | Questões: {questoes_md}` |
-| Fase 3 | `✅ Google Doc criado: {gdoc_url}` |
+| Fase   | Mensagem                                                                                    |
+| ------ | ------------------------------------------------------------------------------------------- | ------------------------ |
+| Fase 1 | `✅ PDF convertido: {md_path}`                                                              |
+| Fase 2 | `✅ Separação concluída. Matéria: {materia_md}                                              | Questões: {questoes_md}` |
+| Fase 3 | `✅ Google Doc criado: {gdoc_url}`                                                          |
 | Fase 4 | `✅ Relevância salva: {relevancia_md} — 🔥 {n_alta} tópicos de alta frequência encontrados` |
-| Fase 5 | `✅ {n} cartão(ões) criado(s) no deck '{deck_anki}'` |
+| Fase 5 | `✅ {n} cartão(ões) criado(s) no deck '{deck_anki}'`                                        |
 
 ---
 
 ## Modo de Entrada Alternativo: Somente Fase Específica
 
 O usuário pode invocar o agente para executar apenas uma fase, informando:
+
 - _"Quero só formatar em tópicos o arquivo `materia.md`"_ → Fase 3 diretamente.
 - _"Quero criar um cartão no Anki com este tópico: [texto]"_ → Fase 5 diretamente.
 - _"Analise a relevância por banca CESPE"_ → Fase 4, pedindo `topicos_txt` ao usuário.

@@ -106,10 +106,10 @@ Tema principal do parágrafo:
 
 ### Skills de Estudo Disponíveis
 
-| Skill | Script | Descrição |
-|-------|--------|-----------|
-| `study-pdf-to-md` | `convert_pdf.py` | Converte PDF → Markdown (MarkItDown) |
-| `study-split-md` | — | Separa matéria explicativa de questões |
-| `study-formatar-topicos` | `create_gdoc.py` | Formata em tópicos hierárquicos e publica no Google Docs |
-| `study-relevancia` | — | Classifica tópicos por frequência em provas (🔥 / ⚠️ / 📝) |
-| `study-anki` | `send_to_anki.py` | Cria flashcards no Anki via AnkiConnect |
+| Skill                    | Script            | Descrição                                                  |
+| ------------------------ | ----------------- | ---------------------------------------------------------- |
+| `study-pdf-to-md`        | `convert_pdf.py`  | Converte PDF → Markdown (MarkItDown)                       |
+| `study-split-md`         | —                 | Separa matéria explicativa de questões                     |
+| `study-formatar-topicos` | `create_gdoc.py`  | Formata em tópicos hierárquicos e publica no Google Docs   |
+| `study-relevancia`       | —                 | Classifica tópicos por frequência em provas (🔥 / ⚠️ / 📝) |
+| `study-anki`             | `send_to_anki.py` | Cria flashcards no Anki via AnkiConnect                    |
