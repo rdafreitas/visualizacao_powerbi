@@ -249,3 +249,6 @@ With multiple developers:
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently
 - Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence
+- **Principle IX**: Each task MUST have a single concrete responsibility — split broad tasks into smaller ones.
+  Each **Checkpoint** line SHOULD name the design pattern applied in that phase
+  (e.g., "Checkpoint: Service Layer pattern complete — AnkiConnect calls isolated from business logic").

@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bash .specify/scripts/bash/setup-plan.sh --json)"
+    ]
+  }
+}
