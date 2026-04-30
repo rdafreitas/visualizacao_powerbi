@@ -1,29 +1,46 @@
-# Estudos Development Guidelines
+# Diretrizes de Desenvolvimento — Estudos
 
-Auto-generated from all feature plans. Last updated: 2026-04-30
+Gerado automaticamente a partir de todos os planos de feature. Última atualização: 2026-04-30
 
-## Active Technologies
+## Tecnologias Ativas
 
 - Python 3.11+ + `urllib`, `json`, `pathlib`, `datetime` (todos stdlib — sem `pip install`) (007-study-anki-export)
 
-## Project Structure
+## Estrutura do Projeto
 
 ```text
 src/
 tests/
 ```
 
-## Commands
+## Comandos
 
-cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLOGIES] pytest [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLOGIES] ruff check .
+cd src [APENAS COMANDOS PARA AS TECNOLOGIAS ATIVAS][APENAS COMANDOS PARA AS TECNOLOGIAS ATIVAS] pytest [APENAS COMANDOS PARA AS TECNOLOGIAS ATIVAS][APENAS COMANDOS PARA AS TECNOLOGIAS ATIVAS] ruff check .
 
-## Code Style
+## Estilo de Código
 
-Python 3.11+: Follow standard conventions
+Python 3.11+: Siga as convenções padrão
 
-## Recent Changes
+## Mudanças Recentes
 
-- 007-study-anki-export: Added Python 3.11+ + `urllib`, `json`, `pathlib`, `datetime` (todos stdlib — sem `pip install`)
+- 007-study-anki-export: Adicionado Python 3.11+ + `urllib`, `json`, `pathlib`, `datetime` (todos stdlib — sem `pip install`)
 
-<!-- MANUAL ADDITIONS START -->
-<!-- MANUAL ADDITIONS END -->
+<!-- ADIÇÕES MANUAIS - INÍCIO -->
+
+## Idioma
+
+Toda comunicação com o usuário e toda documentação devem estar em **português do Brasil (PT-BR)**.
+
+Isso inclui: mensagens ao usuário, comentários em código, docstrings, textos de templates, instruções de agentes, nomes de seções e qualquer conteúdo legível por humanos.
+
+**Exceções — mantenha em inglês:**
+- Comandos de terminal e scripts (`pip install`, `pytest`, `git commit`, etc.)
+- Caminhos de arquivo e nomes de diretório
+- Nomes de variáveis, funções, classes e módulos Python
+- Chaves de dicionários JSON/YAML e nomes de campos de schema
+- Flags e opções de CLI (`--json`, `--debug`, `--require-tasks`, etc.)
+- IDs funcionais de rastreamento (`T001`, `CHK001`, `RF-001`, `[P]`, `[US1]`, etc.)
+- Nomes de bibliotecas, frameworks e ferramentas (`urllib`, `pathlib`, `pytest`, etc.)
+- Qualquer string interpretada diretamente por ferramentas ou sistemas externos
+
+<!-- ADIÇÕES MANUAIS - FIM -->

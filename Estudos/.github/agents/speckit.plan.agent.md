@@ -1,35 +1,35 @@
 ---
-description: Execute the implementation planning workflow using the plan template to generate design artifacts.
+description: Executa o fluxo de planejamento de implementação usando o template de plano para gerar artefatos de design.
 handoffs: 
-  - label: Create Tasks
+  - label: Criar Tarefas
     agent: speckit.tasks
-    prompt: Break the plan into tasks
+    prompt: Detalhe o plano em tarefas
     send: true
-  - label: Create Checklist
+  - label: Criar Checklist
     agent: speckit.checklist
-    prompt: Create a checklist for the following domain...
+    prompt: Crie uma checklist para o seguinte domínio...
 ---
 
-## User Input
+## Entrada do Usuário
 
 ```text
 $ARGUMENTS
 ```
 
-You **MUST** consider the user input before proceeding (if not empty).
+Você **DEVE** considerar a entrada do usuário antes de prosseguir (se não estiver vazia).
 
-## Pre-Execution Checks
+## Verificações Pré-Execução
 
-**Check for extension hooks (before planning)**:
-- Check if `.specify/extensions.yml` exists in the project root.
-- If it exists, read it and look for entries under the `hooks.before_plan` key
-- If the YAML cannot be parsed or is invalid, skip hook checking silently and continue normally
-- Filter out hooks where `enabled` is explicitly `false`. Treat hooks without an `enabled` field as enabled by default.
-- For each remaining hook, do **not** attempt to interpret or evaluate hook `condition` expressions:
-  - If the hook has no `condition` field, or it is null/empty, treat the hook as executable
-  - If the hook defines a non-empty `condition`, skip the hook and leave condition evaluation to the HookExecutor implementation
-- For each executable hook, output the following based on its `optional` flag:
-  - **Optional hook** (`optional: true`):
+**Verificar hooks de extensão (antes do planejamento)**:
+- Verifique se `.specify/extensions.yml` existe na raiz do projeto.
+- Se existir, leia-o e procure entradas sob a chave `hooks.before_plan`
+- Se o YAML não puder ser analisado ou for inválido, ignore silenciosamente a verificação de hooks e continue normalmente
+- Filtre hooks onde `enabled` é explicitamente `false`. Trate hooks sem campo `enabled` como habilitados por padrão.
+- Para cada hook restante, **não** tente interpretar ou avaliar expressões `condition` do hook:
+  - Se o hook não tiver campo `condition`, ou ele for nulo/vazio, trate o hook como executável
+  - Se o hook definir uma `condition` não vazia, ignore o hook e deixe a avaliação da condição para a implementação do HookExecutor
+- Para cada hook executável, gere o seguinte com base em seu flag `optional`:
+  - **Hook opcional** (`optional: true`):
     ```
     ## Extension Hooks
 
@@ -40,7 +40,7 @@ You **MUST** consider the user input before proceeding (if not empty).
     Prompt: {prompt}
     To execute: `/{command}`
     ```
-  - **Mandatory hook** (`optional: false`):
+  - **Hook obrigatório** (`optional: false`):
     ```
     ## Extension Hooks
 
@@ -50,34 +50,34 @@ You **MUST** consider the user input before proceeding (if not empty).
 
     Wait for the result of the hook command before proceeding to the Outline.
     ```
-- If no hooks are registered or `.specify/extensions.yml` does not exist, skip silently
+- Se nenhum hook estiver registrado ou `.specify/extensions.yml` não existir, ignore silenciosamente
 
-## Outline
+## Descrição Geral
 
-1. **Setup**: Run `.specify/scripts/bash/setup-plan.sh --json` from repo root and parse JSON for FEATURE_SPEC, IMPL_PLAN, SPECS_DIR, BRANCH. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+1. **Setup**: Execute `.specify/scripts/bash/setup-plan.sh --json` a partir da raiz do repositório e analise o JSON para FEATURE_SPEC, IMPL_PLAN, SPECS_DIR, BRANCH. Para aspas simples em argumentos como "I'm Groot", use sintaxe de escape: ex. 'I'\''m Groot' (ou aspas duplas se possível: "I'm Groot").
 
-2. **Load context**: Read FEATURE_SPEC and `.specify/memory/constitution.md`. Load IMPL_PLAN template (already copied).
+2. **Carregar contexto**: Leia FEATURE_SPEC e `.specify/memory/constitution.md`. Carregue o template IMPL_PLAN (já copiado).
 
-3. **Execute plan workflow**: Follow the structure in IMPL_PLAN template to:
-   - Fill Technical Context (mark unknowns as "NEEDS CLARIFICATION")
-   - Fill Constitution Check section from constitution
-   - Evaluate gates (ERROR if violations unjustified)
-   - Phase 0: Generate research.md (resolve all NEEDS CLARIFICATION)
-   - Phase 1: Generate data-model.md, contracts/, quickstart.md
-   - Phase 1: Update agent context by running the agent script
-   - Re-evaluate Constitution Check post-design
+3. **Executar fluxo de planejamento**: Siga a estrutura no template IMPL_PLAN para:
+   - Preencher o Contexto Técnico (marque desconhecidos como "NECESSITA ESCLARECIMENTO")
+   - Preencher a seção de Verificação da Constituição a partir da constituição
+   - Avaliar os gates (ERRO se violações não forem justificadas)
+   - Fase 0: Gerar research.md (resolver todos os NECESSITA ESCLARECIMENTO)
+   - Fase 1: Gerar data-model.md, contracts/, quickstart.md
+   - Fase 1: Atualizar o contexto do agente executando o script do agente
+   - Reavaliar a Verificação da Constituição após o design
 
-4. **Stop and report**: Command ends after Phase 2 planning. Report branch, IMPL_PLAN path, and generated artifacts.
+4. **Parar e relatar**: O comando termina após o planejamento da Fase 2. Relate a branch, o caminho do IMPL_PLAN e os artefatos gerados.
 
-5. **Check for extension hooks**: After reporting, check if `.specify/extensions.yml` exists in the project root.
-   - If it exists, read it and look for entries under the `hooks.after_plan` key
-   - If the YAML cannot be parsed or is invalid, skip hook checking silently and continue normally
-   - Filter out hooks where `enabled` is explicitly `false`. Treat hooks without an `enabled` field as enabled by default.
-   - For each remaining hook, do **not** attempt to interpret or evaluate hook `condition` expressions:
-     - If the hook has no `condition` field, or it is null/empty, treat the hook as executable
-     - If the hook defines a non-empty `condition`, skip the hook and leave condition evaluation to the HookExecutor implementation
-   - For each executable hook, output the following based on its `optional` flag:
-     - **Optional hook** (`optional: true`):
+5. **Verificar hooks de extensão**: Após o relatório, verifique se `.specify/extensions.yml` existe na raiz do projeto.
+   - Se existir, leia-o e procure entradas sob a chave `hooks.after_plan`
+   - Se o YAML não puder ser analisado ou for inválido, ignore silenciosamente a verificação de hooks e continue normalmente
+   - Filtre hooks onde `enabled` é explicitamente `false`. Trate hooks sem campo `enabled` como habilitados por padrão.
+   - Para cada hook restante, **não** tente interpretar ou avaliar expressões `condition` do hook:
+     - Se o hook não tiver campo `condition`, ou ele for nulo/vazio, trate o hook como executável
+     - Se o hook definir uma `condition` não vazia, ignore o hook e deixe a avaliação da condição para a implementação do HookExecutor
+   - Para cada hook executável, gere o seguinte com base em seu flag `optional`:
+     - **Hook opcional** (`optional: true`):
        ```
        ## Extension Hooks
 
@@ -88,7 +88,7 @@ You **MUST** consider the user input before proceeding (if not empty).
        Prompt: {prompt}
        To execute: `/{command}`
        ```
-     - **Mandatory hook** (`optional: false`):
+     - **Hook obrigatório** (`optional: false`):
        ```
        ## Extension Hooks
 
@@ -96,58 +96,58 @@ You **MUST** consider the user input before proceeding (if not empty).
        Executing: `/{command}`
        EXECUTE_COMMAND: {command}
        ```
-   - If no hooks are registered or `.specify/extensions.yml` does not exist, skip silently
+   - Se nenhum hook estiver registrado ou `.specify/extensions.yml` não existir, ignore silenciosamente
 
-## Phases
+## Fases
 
-### Phase 0: Outline & Research
+### Fase 0: Esboço e Pesquisa
 
-1. **Extract unknowns from Technical Context** above:
-   - For each NEEDS CLARIFICATION → research task
-   - For each dependency → best practices task
-   - For each integration → patterns task
+1. **Extrair desconhecidos do Contexto Técnico** acima:
+   - Para cada NECESSITA ESCLARECIMENTO → tarefa de pesquisa
+   - Para cada dependência → tarefa de melhores práticas
+   - Para cada integração → tarefa de padrões
 
-2. **Generate and dispatch research agents**:
+2. **Gerar e despachar agentes de pesquisa**:
 
    ```text
-   For each unknown in Technical Context:
-     Task: "Research {unknown} for {feature context}"
-   For each technology choice:
-     Task: "Find best practices for {tech} in {domain}"
+   Para cada desconhecido no Contexto Técnico:
+     Task: "Pesquisar {desconhecido} para {contexto da feature}"
+   Para cada escolha de tecnologia:
+     Task: "Encontrar melhores práticas para {tech} em {domínio}"
    ```
 
-3. **Consolidate findings** in `research.md` using format:
-   - Decision: [what was chosen]
-   - Rationale: [why chosen]
-   - Alternatives considered: [what else evaluated]
+3. **Consolidar descobertas** em `research.md` usando o formato:
+   - Decisão: [o que foi escolhido]
+   - Justificativa: [por que foi escolhido]
+   - Alternativas consideradas: [o que mais foi avaliado]
 
-**Output**: research.md with all NEEDS CLARIFICATION resolved
+**Saída**: research.md com todos os NECESSITA ESCLARECIMENTO resolvidos
 
-### Phase 1: Design & Contracts
+### Fase 1: Design e Contratos
 
-**Prerequisites:** `research.md` complete
+**Pré-requisitos:** `research.md` completo
 
-1. **Extract entities from feature spec** → `data-model.md`:
-   - Entity name, fields, relationships
-   - Validation rules from requirements
-   - State transitions if applicable
+1. **Extrair entidades da spec da feature** → `data-model.md`:
+   - Nome da entidade, campos, relacionamentos
+   - Regras de validação dos requisitos
+   - Transições de estado, se aplicável
 
-2. **Define interface contracts** (if project has external interfaces) → `/contracts/`:
-   - Identify what interfaces the project exposes to users or other systems
-   - Document the contract format appropriate for the project type
-   - Examples: public APIs for libraries, command schemas for CLI tools, endpoints for web services, grammars for parsers, UI contracts for applications
-   - Skip if project is purely internal (build scripts, one-off tools, etc.)
+2. **Definir contratos de interface** (se o projeto tiver interfaces externas) → `/contracts/`:
+   - Identifique quais interfaces o projeto expõe para usuários ou outros sistemas
+   - Documente o formato de contrato apropriado para o tipo de projeto
+   - Exemplos: APIs públicas para bibliotecas, schemas de comandos para ferramentas CLI, endpoints para serviços web, gramáticas para parsers, contratos de UI para aplicativos
+   - Ignore se o projeto for puramente interno (scripts de build, ferramentas pontuais, etc.)
 
-3. **Agent context update**:
-   - Run `.specify/scripts/bash/update-agent-context.sh copilot`
-   - These scripts detect which AI agent is in use
-   - Update the appropriate agent-specific context file
-   - Add only new technology from current plan
-   - Preserve manual additions between markers
+3. **Atualização do contexto do agente**:
+   - Execute `.specify/scripts/bash/update-agent-context.sh copilot`
+   - Estes scripts detectam qual agente de IA está em uso
+   - Atualize o arquivo de contexto específico do agente apropriado
+   - Adicione apenas a nova tecnologia do plano atual
+   - Preserve adições manuais entre os marcadores
 
-**Output**: data-model.md, /contracts/*, quickstart.md, agent-specific file
+**Saída**: data-model.md, /contracts/*, quickstart.md, arquivo específico do agente
 
-## Key rules
+## Regras Principais
 
-- Use absolute paths
-- ERROR on gate failures or unresolved clarifications
+- Use caminhos absolutos
+- ERRO em falhas de gate ou esclarecimentos não resolvidos

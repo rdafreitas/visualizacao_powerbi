@@ -1,295 +1,292 @@
 ---
-description: Generate a custom checklist for the current feature based on user requirements.
+description: Gera uma checklist personalizada para a feature atual com base nos requisitos do usuário.
 ---
 
-## Checklist Purpose: "Unit Tests for English"
+## Propósito da Checklist: "Testes Unitários para Requisitos"
 
-**CRITICAL CONCEPT**: Checklists are **UNIT TESTS FOR REQUIREMENTS WRITING** - they validate the quality, clarity, and completeness of requirements in a given domain.
+**CONCEITO CENTRAL**: Checklists são **TESTES UNITÁRIOS PARA ESCRITA DE REQUISITOS** — elas validam a qualidade, clareza e completude dos requisitos em um determinado domínio.
 
-**NOT for verification/testing**:
+**NÃO são para verificação/teste:**
 
-- ❌ NOT "Verify the button clicks correctly"
-- ❌ NOT "Test error handling works"
-- ❌ NOT "Confirm the API returns 200"
-- ❌ NOT checking if code/implementation matches the spec
+- ❌ NÃO "Verificar se o botão clica corretamente"
+- ❌ NÃO "Testar se o tratamento de erros funciona"
+- ❌ NÃO "Confirmar se a API retorna 200"
+- ❌ NÃO verificar se o código/implementação corresponde à spec
 
-**FOR requirements quality validation**:
+**SÃO para validação da qualidade dos requisitos:**
 
-- ✅ "Are visual hierarchy requirements defined for all card types?" (completeness)
-- ✅ "Is 'prominent display' quantified with specific sizing/positioning?" (clarity)
-- ✅ "Are hover state requirements consistent across all interactive elements?" (consistency)
-- ✅ "Are accessibility requirements defined for keyboard navigation?" (coverage)
-- ✅ "Does the spec define what happens when logo image fails to load?" (edge cases)
+- ✅ "Os requisitos de hierarquia visual estão definidos para todos os tipos de card?" (completude)
+- ✅ "'Exibição proeminente' está quantificada com tamanho/posicionamento específicos?" (clareza)
+- ✅ "Os requisitos de estado hover são consistentes em todos os elementos interativos?" (consistência)
+- ✅ "Os requisitos de acessibilidade estão definidos para navegação por teclado?" (cobertura)
+- ✅ "A spec define o que acontece quando a imagem do logo falha ao carregar?" (casos de borda)
 
-**Metaphor**: If your spec is code written in English, the checklist is its unit test suite. You're testing whether the requirements are well-written, complete, unambiguous, and ready for implementation - NOT whether the implementation works.
+**Metáfora**: Se sua spec é código escrito em português, a checklist é seu conjunto de testes unitários. Você está testando se os requisitos estão bem escritos, completos, sem ambiguidade e prontos para implementação — NÃO se a implementação funciona.
 
-## User Input
+## Entrada do Usuário
 
 ```text
 $ARGUMENTS
 ```
 
-You **MUST** consider the user input before proceeding (if not empty).
+Você **DEVE** considerar a entrada do usuário antes de prosseguir (se não estiver vazia).
 
-## Execution Steps
+## Passos de Execução
 
-1. **Setup**: Run `.specify/scripts/bash/check-prerequisites.sh --json` from repo root and parse JSON for FEATURE_DIR and AVAILABLE_DOCS list.
-   - All file paths must be absolute.
-   - For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+1. **Setup**: Execute `.specify/scripts/bash/check-prerequisites.sh --json` a partir da raiz do repositório e analise o JSON para obter FEATURE_DIR e a lista AVAILABLE_DOCS.
+   - Todos os caminhos de arquivo devem ser absolutos.
+   - Para aspas simples em argumentos como "I'm Groot", use sintaxe de escape: ex. 'I'\''m Groot' (ou aspas duplas se possível: "I'm Groot").
 
-2. **Clarify intent (dynamic)**: Derive up to THREE initial contextual clarifying questions (no pre-baked catalog). They MUST:
-   - Be generated from the user's phrasing + extracted signals from spec/plan/tasks
-   - Only ask about information that materially changes checklist content
-   - Be skipped individually if already unambiguous in `$ARGUMENTS`
-   - Prefer precision over breadth
+2. **Esclarecer intenção (dinâmico)**: Derive até TRÊS perguntas de esclarecimento contextuais iniciais (sem catálogo pré-definido). Elas DEVEM:
+   - Ser geradas a partir da formulação do usuário + sinais extraídos da spec/plan/tasks
+   - Perguntar apenas sobre informações que mudam materialmente o conteúdo da checklist
+   - Ser ignoradas individualmente se já estiverem inequívocas nos `$ARGUMENTS`
+   - Preferir precisão em vez de abrangência
 
-   Generation algorithm:
-   1. Extract signals: feature domain keywords (e.g., auth, latency, UX, API), risk indicators ("critical", "must", "compliance"), stakeholder hints ("QA", "review", "security team"), and explicit deliverables ("a11y", "rollback", "contracts").
-   2. Cluster signals into candidate focus areas (max 4) ranked by relevance.
-   3. Identify probable audience & timing (author, reviewer, QA, release) if not explicit.
-   4. Detect missing dimensions: scope breadth, depth/rigor, risk emphasis, exclusion boundaries, measurable acceptance criteria.
-   5. Formulate questions chosen from these archetypes:
-      - Scope refinement (e.g., "Should this include integration touchpoints with X and Y or stay limited to local module correctness?")
-      - Risk prioritization (e.g., "Which of these potential risk areas should receive mandatory gating checks?")
-      - Depth calibration (e.g., "Is this a lightweight pre-commit sanity list or a formal release gate?")
-      - Audience framing (e.g., "Will this be used by the author only or peers during PR review?")
-      - Boundary exclusion (e.g., "Should we explicitly exclude performance tuning items this round?")
-      - Scenario class gap (e.g., "No recovery flows detected—are rollback / partial failure paths in scope?")
+   Algoritmo de geração:
+   1. Extrair sinais: palavras-chave de domínio da feature (ex.: auth, latência, UX, API), indicadores de risco ("crítico", "deve", "conformidade"), dicas de partes interessadas ("QA", "revisão", "equipe de segurança") e entregáveis explícitos ("a11y", "rollback", "contratos").
+   2. Agrupar sinais em áreas de foco candidatas (máx. 4) classificadas por relevância.
+   3. Identificar o provável público e momento (autor, revisor, QA, lançamento) se não explícito.
+   4. Detectar dimensões ausentes: amplitude de escopo, profundidade/rigor, ênfase de risco, limites de exclusão, critérios de aceitação mensuráveis.
+   5. Formular perguntas escolhidas destes arquétipos:
+      - Refinamento de escopo (ex.: "Deve incluir pontos de integração com X e Y ou ficar limitado à correção do módulo local?")
+      - Priorização de risco (ex.: "Quais dessas áreas de risco potenciais devem receber verificações de gate obrigatórias?")
+      - Calibração de profundidade (ex.: "É uma lista de sanidade pré-commit leve ou um gate formal de lançamento?")
+      - Enquadramento do público (ex.: "Será usada apenas pelo autor ou por pares durante a revisão do PR?")
+      - Exclusão de limite (ex.: "Devemos excluir explicitamente itens de ajuste de performance nesta rodada?")
+      - Lacuna de classe de cenário (ex.: "Nenhum fluxo de recuperação detectado — os caminhos de rollback/falha parcial estão no escopo?")
 
-   Question formatting rules:
-   - If presenting options, generate a compact table with columns: Option | Candidate | Why It Matters
-   - Limit to A–E options maximum; omit table if a free-form answer is clearer
-   - Never ask the user to restate what they already said
-   - Avoid speculative categories (no hallucination). If uncertain, ask explicitly: "Confirm whether X belongs in scope."
+   Regras de formatação de perguntas:
+   - Se apresentar opções, gere uma tabela compacta com colunas: Opção | Candidato | Por que É Importante
+   - Limite a no máximo A–E opções; omita tabela se uma resposta de forma livre for mais clara
+   - Nunca peça ao usuário para repetir o que já disse
+   - Evite categorias especulativas (sem alucinações). Se incerto, pergunte explicitamente: "Confirme se X está no escopo."
 
-   Defaults when interaction impossible:
-   - Depth: Standard
-   - Audience: Reviewer (PR) if code-related; Author otherwise
-   - Focus: Top 2 relevance clusters
+   Padrões quando a interação é impossível:
+   - Profundidade: Padrão
+   - Público: Revisor (PR) se relacionado a código; Autor caso contrário
+   - Foco: Os 2 principais clusters de relevância
 
-   Output the questions (label Q1/Q2/Q3). After answers: if ≥2 scenario classes (Alternate / Exception / Recovery / Non-Functional domain) remain unclear, you MAY ask up to TWO more targeted follow‑ups (Q4/Q5) with a one-line justification each (e.g., "Unresolved recovery path risk"). Do not exceed five total questions. Skip escalation if user explicitly declines more.
+   Gere as perguntas (rotule Q1/Q2/Q3). Após as respostas: se ≥2 classes de cenário (Alternativo / Exceção / Recuperação / domínio Não-Funcional) permanecerem pouco claras, você PODE fazer até DOIS acompanhamentos adicionais (Q4/Q5) com uma justificativa de uma linha cada (ex.: "Risco de caminho de recuperação não resolvido"). Não ultrapasse cinco perguntas no total. Ignore o escalonamento se o usuário recusar mais.
 
-3. **Understand user request**: Combine `$ARGUMENTS` + clarifying answers:
-   - Derive checklist theme (e.g., security, review, deploy, ux)
-   - Consolidate explicit must-have items mentioned by user
-   - Map focus selections to category scaffolding
-   - Infer any missing context from spec/plan/tasks (do NOT hallucinate)
+3. **Entender a solicitação do usuário**: Combine `$ARGUMENTS` + respostas de esclarecimento:
+   - Derive o tema da checklist (ex.: segurança, revisão, deploy, ux)
+   - Consolide itens obrigatórios explícitos mencionados pelo usuário
+   - Mapeie seleções de foco para a estrutura de categorias
+   - Infira qualquer contexto ausente da spec/plan/tasks (NÃO alucine)
 
-4. **Load feature context**: Read from FEATURE_DIR:
-   - spec.md: Feature requirements and scope
-   - plan.md (if exists): Technical details, dependencies
-   - tasks.md (if exists): Implementation tasks
+4. **Carregar contexto da feature**: Leia do FEATURE_DIR:
+   - spec.md: Requisitos e escopo da feature
+   - plan.md (se existir): Detalhes técnicos, dependências
+   - tasks.md (se existir): Tarefas de implementação
 
-   **Context Loading Strategy**:
-   - Load only necessary portions relevant to active focus areas (avoid full-file dumping)
-   - Prefer summarizing long sections into concise scenario/requirement bullets
-   - Use progressive disclosure: add follow-on retrieval only if gaps detected
-   - If source docs are large, generate interim summary items instead of embedding raw text
+   **Estratégia de Carregamento de Contexto**:
+   - Carregue apenas as partes necessárias relevantes às áreas de foco ativas (evite despejar o arquivo completo)
+   - Prefira resumir seções longas em bullets concisos de cenário/requisito
+   - Use divulgação progressiva: adicione recuperação complementar somente se lacunas forem detectadas
+   - Se os documentos-fonte forem grandes, gere itens de resumo intermediários em vez de incorporar texto bruto
 
-5. **Generate checklist** - Create "Unit Tests for Requirements":
-   - Create `FEATURE_DIR/checklists/` directory if it doesn't exist
-   - Generate unique checklist filename:
-     - Use short, descriptive name based on domain (e.g., `ux.md`, `api.md`, `security.md`)
-     - Format: `[domain].md`
-   - File handling behavior:
-     - If file does NOT exist: Create new file and number items starting from CHK001
-     - If file exists: Append new items to existing file, continuing from the last CHK ID (e.g., if last item is CHK015, start new items at CHK016)
-   - Never delete or replace existing checklist content - always preserve and append
+5. **Gerar checklist** — Crie "Testes Unitários para Requisitos":
+   - Crie o diretório `FEATURE_DIR/checklists/` se não existir
+   - Gere um nome de arquivo único para a checklist:
+     - Use um nome curto e descritivo baseado no domínio (ex.: `ux.md`, `api.md`, `seguranca.md`)
+     - Formato: `[dominio].md`
+   - Comportamento de tratamento de arquivo:
+     - Se o arquivo NÃO existir: crie um novo arquivo e numere os itens a partir de CHK001
+     - Se o arquivo existir: adicione novos itens ao arquivo existente, continuando a partir do último ID CHK (ex.: se o último item for CHK015, inicie novos itens em CHK016)
+   - Nunca exclua ou substitua o conteúdo de checklist existente — sempre preserve e adicione
 
-   **CORE PRINCIPLE - Test the Requirements, Not the Implementation**:
-   Every checklist item MUST evaluate the REQUIREMENTS THEMSELVES for:
-   - **Completeness**: Are all necessary requirements present?
-   - **Clarity**: Are requirements unambiguous and specific?
-   - **Consistency**: Do requirements align with each other?
-   - **Measurability**: Can requirements be objectively verified?
-   - **Coverage**: Are all scenarios/edge cases addressed?
+   **PRINCÍPIO CENTRAL — Teste os Requisitos, não a Implementação**:
+   Cada item da checklist DEVE avaliar os PRÓPRIOS REQUISITOS quanto a:
+   - **Completude**: Todos os requisitos necessários estão presentes?
+   - **Clareza**: Os requisitos são inequívocos e específicos?
+   - **Consistência**: Os requisitos se alinham entre si?
+   - **Mensurabilidade**: Os requisitos podem ser objetivamente verificados?
+   - **Cobertura**: Todos os cenários/casos de borda são tratados?
 
-   **Category Structure** - Group items by requirement quality dimensions:
-   - **Requirement Completeness** (Are all necessary requirements documented?)
-   - **Requirement Clarity** (Are requirements specific and unambiguous?)
-   - **Requirement Consistency** (Do requirements align without conflicts?)
-   - **Acceptance Criteria Quality** (Are success criteria measurable?)
-   - **Scenario Coverage** (Are all flows/cases addressed?)
-   - **Edge Case Coverage** (Are boundary conditions defined?)
-   - **Non-Functional Requirements** (Performance, Security, Accessibility, etc. - are they specified?)
-   - **Dependencies & Assumptions** (Are they documented and validated?)
-   - **Ambiguities & Conflicts** (What needs clarification?)
+   **Estrutura de Categorias** — Agrupe itens por dimensões de qualidade dos requisitos:
+   - **Completude dos Requisitos** (Todos os requisitos necessários estão documentados?)
+   - **Clareza dos Requisitos** (Os requisitos são específicos e inequívocos?)
+   - **Consistência dos Requisitos** (Os requisitos se alinham sem conflitos?)
+   - **Qualidade dos Critérios de Aceitação** (Os critérios de sucesso são mensuráveis?)
+   - **Cobertura de Cenários** (Todos os fluxos/casos são tratados?)
+   - **Cobertura de Casos de Borda** (As condições limite estão definidas?)
+   - **Requisitos Não Funcionais** (Performance, Segurança, Acessibilidade, etc. — estão especificados?)
+   - **Dependências e Premissas** (Estão documentadas e validadas?)
+   - **Ambiguidades e Conflitos** (O que precisa de esclarecimento?)
 
-   **HOW TO WRITE CHECKLIST ITEMS - "Unit Tests for English"**:
+   **COMO ESCREVER ITENS DE CHECKLIST — "Testes Unitários para Requisitos"**:
 
-   ❌ **WRONG** (Testing implementation):
-   - "Verify landing page displays 3 episode cards"
-   - "Test hover states work on desktop"
-   - "Confirm logo click navigates home"
+   ❌ **ERRADO** (Testando a implementação):
+   - "Verificar se a página inicial exibe 3 cards de episódio"
+   - "Testar se os estados hover funcionam no desktop"
+   - "Confirmar se o clique no logo navega para a home"
 
-   ✅ **CORRECT** (Testing requirements quality):
-   - "Are the exact number and layout of featured episodes specified?" [Completeness]
-   - "Is 'prominent display' quantified with specific sizing/positioning?" [Clarity]
-   - "Are hover state requirements consistent across all interactive elements?" [Consistency]
-   - "Are keyboard navigation requirements defined for all interactive UI?" [Coverage]
-   - "Is the fallback behavior specified when logo image fails to load?" [Edge Cases]
-   - "Are loading states defined for asynchronous episode data?" [Completeness]
-   - "Does the spec define visual hierarchy for competing UI elements?" [Clarity]
+   ✅ **CORRETO** (Testando a qualidade dos requisitos):
+   - "O número exato e layout dos episódios em destaque estão especificados?" [Completude]
+   - "'Exibição proeminente' está quantificada com tamanho/posicionamento específicos?" [Clareza]
+   - "Os requisitos de estado hover são consistentes em todos os elementos interativos?" [Consistência]
+   - "Os requisitos de navegação por teclado estão definidos para toda a UI interativa?" [Cobertura]
+   - "O comportamento de fallback está especificado quando a imagem do logo falha ao carregar?" [Casos de Borda]
+   - "Os estados de carregamento estão definidos para dados de episódio assíncronos?" [Completude]
+   - "A spec define a hierarquia visual para elementos de UI concorrentes?" [Clareza]
 
-   **ITEM STRUCTURE**:
-   Each item should follow this pattern:
-   - Question format asking about requirement quality
-   - Focus on what's WRITTEN (or not written) in the spec/plan
-   - Include quality dimension in brackets [Completeness/Clarity/Consistency/etc.]
-   - Reference spec section `[Spec §X.Y]` when checking existing requirements
-   - Use `[Gap]` marker when checking for missing requirements
+   **ESTRUTURA DO ITEM**:
+   Cada item deve seguir este padrão:
+   - Formato de pergunta sobre a qualidade do requisito
+   - Foco no que está ESCRITO (ou não escrito) na spec/plan
+   - Inclua a dimensão de qualidade entre colchetes [Completude/Clareza/Consistência/etc.]
+   - Referencie a seção da spec `[Spec §X.Y]` ao verificar requisitos existentes
+   - Use o marcador `[Lacuna]` ao verificar requisitos ausentes
 
-   **EXAMPLES BY QUALITY DIMENSION**:
+   **EXEMPLOS POR DIMENSÃO DE QUALIDADE**:
 
-   Completeness:
-   - "Are error handling requirements defined for all API failure modes? [Gap]"
-   - "Are accessibility requirements specified for all interactive elements? [Completeness]"
-   - "Are mobile breakpoint requirements defined for responsive layouts? [Gap]"
+   Completude:
+   - "Os requisitos de tratamento de erros estão definidos para todos os modos de falha da API? [Lacuna]"
+   - "Os requisitos de acessibilidade estão especificados para todos os elementos interativos? [Completude]"
+   - "Os requisitos de breakpoint mobile estão definidos para layouts responsivos? [Lacuna]"
 
-   Clarity:
-   - "Is 'fast loading' quantified with specific timing thresholds? [Clarity, Spec §NFR-2]"
-   - "Are 'related episodes' selection criteria explicitly defined? [Clarity, Spec §FR-5]"
-   - "Is 'prominent' defined with measurable visual properties? [Ambiguity, Spec §FR-4]"
+   Clareza:
+   - "'Carregamento rápido' está quantificado com limites de tempo específicos? [Clareza, Spec §NFR-2]"
+   - "Os critérios de seleção de 'episódios relacionados' estão explicitamente definidos? [Clareza, Spec §RF-5]"
+   - "'Proeminente' está definido com propriedades visuais mensuráveis? [Ambiguidade, Spec §RF-4]"
 
-   Consistency:
-   - "Do navigation requirements align across all pages? [Consistency, Spec §FR-10]"
-   - "Are card component requirements consistent between landing and detail pages? [Consistency]"
+   Consistência:
+   - "Os requisitos de navegação estão alinhados em todas as páginas? [Consistência, Spec §RF-10]"
+   - "Os requisitos do componente card são consistentes entre as páginas de lista e detalhe? [Consistência]"
 
-   Coverage:
-   - "Are requirements defined for zero-state scenarios (no episodes)? [Coverage, Edge Case]"
-   - "Are concurrent user interaction scenarios addressed? [Coverage, Gap]"
-   - "Are requirements specified for partial data loading failures? [Coverage, Exception Flow]"
+   Cobertura:
+   - "Os requisitos estão definidos para cenários de estado vazio (sem episódios)? [Cobertura, Caso de Borda]"
+   - "Os cenários de interação simultânea do usuário são tratados? [Cobertura, Lacuna]"
+   - "Os requisitos estão especificados para falhas parciais de carregamento de dados? [Cobertura, Fluxo de Exceção]"
 
-   Measurability:
-   - "Are visual hierarchy requirements measurable/testable? [Acceptance Criteria, Spec §FR-1]"
-   - "Can 'balanced visual weight' be objectively verified? [Measurability, Spec §FR-2]"
+   Mensurabilidade:
+   - "Os requisitos de hierarquia visual são mensuráveis/testáveis? [Critério de Aceitação, Spec §RF-1]"
+   - "'Peso visual equilibrado' pode ser objetivamente verificado? [Mensurabilidade, Spec §RF-2]"
 
-   **Scenario Classification & Coverage** (Requirements Quality Focus):
-   - Check if requirements exist for: Primary, Alternate, Exception/Error, Recovery, Non-Functional scenarios
-   - For each scenario class, ask: "Are [scenario type] requirements complete, clear, and consistent?"
-   - If scenario class missing: "Are [scenario type] requirements intentionally excluded or missing? [Gap]"
-   - Include resilience/rollback when state mutation occurs: "Are rollback requirements defined for migration failures? [Gap]"
+   **Classificação e Cobertura de Cenários** (Foco na Qualidade dos Requisitos):
+   - Verifique se existem requisitos para: cenários Primários, Alternativos, Excepcionais/Erro, Recuperação, Não Funcionais
+   - Para cada classe de cenário, pergunte: "Os requisitos de [tipo de cenário] são completos, claros e consistentes?"
+   - Se a classe de cenário estiver ausente: "Os requisitos de [tipo de cenário] foram intencionalmente excluídos ou estão faltando? [Lacuna]"
+   - Inclua resiliência/rollback quando ocorrer mutação de estado: "Os requisitos de rollback estão definidos para falhas de migração? [Lacuna]"
 
-   **Traceability Requirements**:
-   - MINIMUM: ≥80% of items MUST include at least one traceability reference
-   - Each item should reference: spec section `[Spec §X.Y]`, or use markers: `[Gap]`, `[Ambiguity]`, `[Conflict]`, `[Assumption]`
-   - If no ID system exists: "Is a requirement & acceptance criteria ID scheme established? [Traceability]"
+   **Requisitos de Rastreabilidade**:
+   - MÍNIMO: ≥80% dos itens DEVEM incluir pelo menos uma referência de rastreabilidade
+   - Cada item deve referenciar: seção da spec `[Spec §X.Y]`, ou usar marcadores: `[Lacuna]`, `[Ambiguidade]`, `[Conflito]`, `[Premissa]`
+   - Se não houver sistema de ID: "Um esquema de ID de requisito e critério de aceitação está estabelecido? [Rastreabilidade]"
 
-   **Surface & Resolve Issues** (Requirements Quality Problems):
-   Ask questions about the requirements themselves:
-   - Ambiguities: "Is the term 'fast' quantified with specific metrics? [Ambiguity, Spec §NFR-1]"
-   - Conflicts: "Do navigation requirements conflict between §FR-10 and §FR-10a? [Conflict]"
-   - Assumptions: "Is the assumption of 'always available podcast API' validated? [Assumption]"
-   - Dependencies: "Are external podcast API requirements documented? [Dependency, Gap]"
-   - Missing definitions: "Is 'visual hierarchy' defined with measurable criteria? [Gap]"
+   **Identificar e Resolver Problemas** (Problemas de Qualidade dos Requisitos):
+   Faça perguntas sobre os próprios requisitos:
+   - Ambiguidades: "O termo 'rápido' está quantificado com métricas específicas? [Ambiguidade, Spec §NFR-1]"
+   - Conflitos: "Os requisitos de navegação conflitam entre §RF-10 e §RF-10a? [Conflito]"
+   - Premissas: "A premissa de 'API de podcast sempre disponível' está validada? [Premissa]"
+   - Dependências: "Os requisitos de API externa de podcast estão documentados? [Dependência, Lacuna]"
+   - Definições ausentes: "'Hierarquia visual' está definida com critérios mensuráveis? [Lacuna]"
 
-   **Content Consolidation**:
-   - Soft cap: If raw candidate items > 40, prioritize by risk/impact
-   - Merge near-duplicates checking the same requirement aspect
-   - If >5 low-impact edge cases, create one item: "Are edge cases X, Y, Z addressed in requirements? [Coverage]"
+   **Consolidação de Conteúdo**:
+   - Limite suave: Se itens candidatos brutos > 40, priorize por risco/impacto
+   - Mescle quase-duplicatas que verificam o mesmo aspecto do requisito
+   - Se > 5 casos de borda de baixo impacto, crie um item: "Os casos de borda X, Y, Z são tratados nos requisitos? [Cobertura]"
 
-   **🚫 ABSOLUTELY PROHIBITED** - These make it an implementation test, not a requirements test:
-   - ❌ Any item starting with "Verify", "Test", "Confirm", "Check" + implementation behavior
-   - ❌ References to code execution, user actions, system behavior
-   - ❌ "Displays correctly", "works properly", "functions as expected"
-   - ❌ "Click", "navigate", "render", "load", "execute"
-   - ❌ Test cases, test plans, QA procedures
-   - ❌ Implementation details (frameworks, APIs, algorithms)
+   **🚫 ABSOLUTAMENTE PROIBIDO** — Estes tornam a checklist um teste de implementação, não de requisitos:
+   - ❌ Qualquer item começando com "Verificar", "Testar", "Confirmar", "Checar" + comportamento de implementação
+   - ❌ Referências à execução de código, ações do usuário, comportamento do sistema
+   - ❌ "Exibe corretamente", "funciona corretamente", "opera como esperado"
+   - ❌ "Clicar", "navegar", "renderizar", "carregar", "executar"
+   - ❌ Casos de teste, planos de teste, procedimentos de QA
+   - ❌ Detalhes de implementação (frameworks, APIs, algoritmos)
 
-   **✅ REQUIRED PATTERNS** - These test requirements quality:
-   - ✅ "Are [requirement type] defined/specified/documented for [scenario]?"
-   - ✅ "Is [vague term] quantified/clarified with specific criteria?"
-   - ✅ "Are requirements consistent between [section A] and [section B]?"
-   - ✅ "Can [requirement] be objectively measured/verified?"
-   - ✅ "Are [edge cases/scenarios] addressed in requirements?"
-   - ✅ "Does the spec define [missing aspect]?"
+   **✅ PADRÕES OBRIGATÓRIOS** — Estes testam a qualidade dos requisitos:
+   - ✅ "Os [tipo de requisito] estão definidos/especificados/documentados para [cenário]?"
+   - ✅ "[Termo vago] está quantificado/esclarecido com critérios específicos?"
+   - ✅ "Os requisitos são consistentes entre [seção A] e [seção B]?"
+   - ✅ "[Requisito] pode ser objetivamente medido/verificado?"
+   - ✅ "Os [casos de borda/cenários] são tratados nos requisitos?"
+   - ✅ "A spec define [aspecto ausente]?"
 
-6. **Structure Reference**: Generate the checklist following the canonical template in `.specify/templates/checklist-template.md` for title, meta section, category headings, and ID formatting. If template is unavailable, use: H1 title, purpose/created meta lines, `##` category sections containing `- [ ] CHK### <requirement item>` lines with globally incrementing IDs starting at CHK001.
+6. **Referência de Estrutura**: Gere a checklist seguindo o template canônico em `.specify/templates/checklist-template.md` para título, seção de meta, cabeçalhos de categoria e formatação de ID. Se o template não estiver disponível, use: título H1, linhas de meta objetivo/criação, seções de categoria `##` contendo linhas `- [ ] CHK### <item de requisito>` com IDs globalmente incrementais começando em CHK001.
 
-7. **Report**: Output full path to checklist file, item count, and summarize whether the run created a new file or appended to an existing one. Summarize:
-   - Focus areas selected
-   - Depth level
-   - Actor/timing
-   - Any explicit user-specified must-have items incorporated
+7. **Relatório**: Gere o caminho completo para o arquivo de checklist, a contagem de itens e resuma se a execução criou um novo arquivo ou adicionou a um existente. Resuma:
+   - Áreas de foco selecionadas
+   - Nível de profundidade
+   - Ator/momento
+   - Quaisquer itens obrigatórios explicitamente especificados pelo usuário incorporados
 
-**Important**: Each `/speckit.checklist` command invocation uses a short, descriptive checklist filename and either creates a new file or appends to an existing one. This allows:
+**Importante**: Cada invocação do comando `/speckit.checklist` usa um nome de arquivo curto e descritivo e ou cria um novo arquivo ou adiciona a um existente. Isso permite:
 
-- Multiple checklists of different types (e.g., `ux.md`, `test.md`, `security.md`)
-- Simple, memorable filenames that indicate checklist purpose
-- Easy identification and navigation in the `checklists/` folder
+- Múltiplas checklists de diferentes tipos (ex.: `ux.md`, `teste.md`, `seguranca.md`)
+- Nomes de arquivo simples e memoráveis que indicam o propósito da checklist
+- Fácil identificação e navegação na pasta `checklists/`
 
-To avoid clutter, use descriptive types and clean up obsolete checklists when done.
+Para evitar desordem, use tipos descritivos e limpe checklists obsoletas quando terminar.
 
-## Example Checklist Types & Sample Items
+## Exemplos de Tipos de Checklist e Itens de Amostra
 
-**UX Requirements Quality:** `ux.md`
+**Qualidade dos Requisitos de UX:** `ux.md`
 
-Sample items (testing the requirements, NOT the implementation):
+Itens de amostra (testando os requisitos, NÃO a implementação):
 
-- "Are visual hierarchy requirements defined with measurable criteria? [Clarity, Spec §FR-1]"
-- "Is the number and positioning of UI elements explicitly specified? [Completeness, Spec §FR-1]"
-- "Are interaction state requirements (hover, focus, active) consistently defined? [Consistency]"
-- "Are accessibility requirements specified for all interactive elements? [Coverage, Gap]"
-- "Is fallback behavior defined when images fail to load? [Edge Case, Gap]"
-- "Can 'prominent display' be objectively measured? [Measurability, Spec §FR-4]"
+- "Os requisitos de hierarquia visual estão definidos com critérios mensuráveis? [Clareza, Spec §RF-1]"
+- "O número e posicionamento dos elementos de UI estão explicitamente especificados? [Completude, Spec §RF-1]"
+- "Os requisitos de estado de interação (hover, foco, ativo) estão consistentemente definidos? [Consistência]"
+- "Os requisitos de acessibilidade estão especificados para todos os elementos interativos? [Cobertura, Lacuna]"
+- "O comportamento de fallback está definido quando imagens falham ao carregar? [Caso de Borda, Lacuna]"
+- "'Exibição proeminente' pode ser objetivamente medida? [Mensurabilidade, Spec §RF-4]"
 
-**API Requirements Quality:** `api.md`
+**Qualidade dos Requisitos de API:** `api.md`
 
-Sample items:
+Itens de amostra:
+- "Os formatos de resposta de erro estão especificados para todos os cenários de falha? [Completude]"
+- "Os requisitos de rate limiting estão quantificados com limites específicos? [Clareza]"
+- "Os requisitos de autenticação são consistentes em todos os endpoints? [Consistência]"
+- "Os requisitos de retry/timeout estão definidos para dependências externas? [Cobertura, Lacuna]"
+- "A estratégia de versionamento está documentada nos requisitos? [Lacuna]"
 
-- "Are error response formats specified for all failure scenarios? [Completeness]"
-- "Are rate limiting requirements quantified with specific thresholds? [Clarity]"
-- "Are authentication requirements consistent across all endpoints? [Consistency]"
-- "Are retry/timeout requirements defined for external dependencies? [Coverage, Gap]"
-- "Is versioning strategy documented in requirements? [Gap]"
+**Qualidade dos Requisitos de Performance:** `performance.md`
 
-**Performance Requirements Quality:** `performance.md`
+Itens de amostra:
+- "Os requisitos de performance estão quantificados com métricas específicas? [Clareza]"
+- "Os alvos de performance estão definidos para todas as jornadas críticas do usuário? [Cobertura]"
+- "Os requisitos de performance sob diferentes condições de carga estão especificados? [Completude]"
+- "Os requisitos de performance podem ser objetivamente medidos? [Mensurabilidade]"
+- "Os requisitos de degradação para cenários de alta carga estão definidos? [Caso de Borda, Lacuna]"
 
-Sample items:
+**Qualidade dos Requisitos de Segurança:** `seguranca.md`
 
-- "Are performance requirements quantified with specific metrics? [Clarity]"
-- "Are performance targets defined for all critical user journeys? [Coverage]"
-- "Are performance requirements under different load conditions specified? [Completeness]"
-- "Can performance requirements be objectively measured? [Measurability]"
-- "Are degradation requirements defined for high-load scenarios? [Edge Case, Gap]"
+Itens de amostra:
+- "Os requisitos de autenticação estão especificados para todos os recursos protegidos? [Cobertura]"
+- "Os requisitos de proteção de dados estão definidos para informações sensíveis? [Completude]"
+- "O modelo de ameaças está documentado e os requisitos estão alinhados a ele? [Rastreabilidade]"
+- "Os requisitos de segurança são consistentes com as obrigações de conformidade? [Consistência]"
+- "Os requisitos de resposta a falhas/violações de segurança estão definidos? [Lacuna, Fluxo de Exceção]"
 
-**Security Requirements Quality:** `security.md`
+## Contra-exemplos: O Que NÃO Fazer
 
-Sample items:
-
-- "Are authentication requirements specified for all protected resources? [Coverage]"
-- "Are data protection requirements defined for sensitive information? [Completeness]"
-- "Is the threat model documented and requirements aligned to it? [Traceability]"
-- "Are security requirements consistent with compliance obligations? [Consistency]"
-- "Are security failure/breach response requirements defined? [Gap, Exception Flow]"
-
-## Anti-Examples: What NOT To Do
-
-**❌ WRONG - These test implementation, not requirements:**
+**❌ ERRADO — Estes testam a implementação, não os requisitos:**
 
 ```markdown
-- [ ] CHK001 - Verify landing page displays 3 episode cards [Spec §FR-001]
-- [ ] CHK002 - Test hover states work correctly on desktop [Spec §FR-003]
-- [ ] CHK003 - Confirm logo click navigates to home page [Spec §FR-010]
-- [ ] CHK004 - Check that related episodes section shows 3-5 items [Spec §FR-005]
+- [ ] CHK001 - Verificar se a página inicial exibe 3 cards de episódio [Spec §RF-001]
+- [ ] CHK002 - Testar se os estados hover funcionam corretamente no desktop [Spec §RF-003]
+- [ ] CHK003 - Confirmar se o clique no logo navega para a home [Spec §RF-010]
+- [ ] CHK004 - Checar se a seção de episódios relacionados mostra 3-5 itens [Spec §RF-005]
 ```
 
-**✅ CORRECT - These test requirements quality:**
+**✅ CORRETO — Estes testam a qualidade dos requisitos:**
 
 ```markdown
-- [ ] CHK001 - Are the number and layout of featured episodes explicitly specified? [Completeness, Spec §FR-001]
-- [ ] CHK002 - Are hover state requirements consistently defined for all interactive elements? [Consistency, Spec §FR-003]
-- [ ] CHK003 - Are navigation requirements clear for all clickable brand elements? [Clarity, Spec §FR-010]
-- [ ] CHK004 - Is the selection criteria for related episodes documented? [Gap, Spec §FR-005]
-- [ ] CHK005 - Are loading state requirements defined for asynchronous episode data? [Gap]
-- [ ] CHK006 - Can "visual hierarchy" requirements be objectively measured? [Measurability, Spec §FR-001]
+- [ ] CHK001 - O número e layout dos episódios em destaque estão explicitamente especificados? [Completude, Spec §RF-001]
+- [ ] CHK002 - Os requisitos de estado hover estão consistentemente definidos para todos os elementos interativos? [Consistência, Spec §RF-003]
+- [ ] CHK003 - Os requisitos de navegação estão claros para todos os elementos de marca clicáveis? [Clareza, Spec §RF-010]
+- [ ] CHK004 - O critério de seleção para episódios relacionados está documentado? [Lacuna, Spec §RF-005]
+- [ ] CHK005 - Os requisitos de estado de carregamento estão definidos para dados de episódio assíncronos? [Lacuna]
+- [ ] CHK006 - Os requisitos de "hierarquia visual" podem ser objetivamente medidos? [Mensurabilidade, Spec §RF-001]
 ```
 
-**Key Differences:**
+**Diferenças Chave:**
 
-- Wrong: Tests if the system works correctly
-- Correct: Tests if the requirements are written correctly
-- Wrong: Verification of behavior
-- Correct: Validation of requirement quality
-- Wrong: "Does it do X?"
-- Correct: "Is X clearly specified?"
+- Errado: Testa se o sistema funciona corretamente
+- Correto: Testa se os requisitos estão escritos corretamente
+- Errado: Verificação de comportamento
+- Correto: Validação da qualidade dos requisitos
+- Errado: "Ele faz X?"
+- Correto: "X está claramente especificado?"
