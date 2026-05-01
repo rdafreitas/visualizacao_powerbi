@@ -54,9 +54,11 @@ Preparar materiais de estudo para concursos é um processo manual, fragmentado e
 
 ### Escopo Macro (v1)
 
-**Incluído**: Conversão PDF→MD, parsing de editais, geração de resumos hierárquicos, classificação de relevância, publicação Google Docs, versionamento local, exportação Anki, memória persistente, logging, modo debug, retomada de execução.
+**Incluído**: Conversão PDF→MD, parsing de editais, geração de resumos hierárquicos, classificação de relevância, publicação Google Docs, versionamento local, exportação Anki, memória persistente, logging, modo debug, retomada de execução, plataforma web de flashcards com SRS (SM-2), feedback de resumos, gamificação com personagem e desbloqueio de jogabilidade.
 
-**Excluído (v1)**: OCR de PDFs escaneados, banco externo de provas, web search obrigatório, interface web/mobile, suporte multi-user.
+**Excluído (v1 original)**: OCR de PDFs escaneados, banco externo de provas, web search obrigatório, suporte multi-user.
+
+**Adicionado (v1.1)**: Interface web de flashcards (spec 008) e gamificação (spec 009) — aprovados e especificados em 2026-04-30. A plataforma web coexiste com a integração Anki Desktop (spec 007).
 
 ---
 
@@ -70,6 +72,8 @@ Preparar materiais de estudo para concursos é um processo manual, fragmentado e
 | 005 | [study-relevance-engine](../005-study-relevance-engine/spec.md) | Feature | Classificação de relevância 🔥/⚠️/📝 para tópicos e questões, com justificativa e fontes | Lógica de análise pura (sem IO). Consome JSONs, produz JSONs. Alinha com Constitution V (RAG) e VI (Separação) |
 | 006 | [study-gdoc-publishing](../006-study-gdoc-publishing/spec.md) | Feature | Publicação em Google Docs (resumo + questões), formatação com ícones, versionamento local Markdown | Canal de output — apresentação. Agrupa resumo e questões por compartilharem mesma infraestrutura |
 | 007 | [study-anki-export](../007-study-anki-export/spec.md) | Feature | Listagem de decks, recomendação, envio batch de flashcards com tags | Canal de output independente — integração Anki com bounded context claro |
+| 008 | [study-flashcard-web](../008-study-flashcard-web/spec.md) | Feature | Plataforma web de flashcards com SRS SM-2 (Node.js + Express.js, HTML/JS → React), feedback de resumos, dashboard de progresso | Canal de revisão web — coexiste com spec 007 (Anki Desktop); gera `flashcard_events.json` e `summary_feedback.json` para spec 009 |
+| 009 | [study-gamification](../009-study-gamification/spec.md) | Feature | Sistema de XP, personagem com nível, marcos de desbloqueio de jogabilidade consumindo eventos da spec 008 | Camada de engajamento — downstream de 008; fecha o ciclo estudo → recompensa → motivação |
 
 ---
 
@@ -92,10 +96,18 @@ Preparar materiais de estudo para concursos é um processo manual, fragmentado e
      │     ← requer 004 (tópicos/questões)           │
      │     ← requer 005 (classificação)              │
      │                                               │
-     └─→ 007-anki-export                             │
-           ← requer 004 (tópicos)                   │
-           ← requer 005 (classificação)              │
-           paralelo com 006 ────────────────────────┘
+     ├─→ 007-anki-export                             │
+     │     ← requer 004 (tópicos)                   │
+     │     ← requer 005 (classificação)              │
+     │     paralelo com 006 ────────────────────────┘
+     │
+     ├─→ 008-flashcard-web
+     │     ← requer 004 (tópicos)
+     │     ← requer 005 (classificação)
+     │     paralelo com 006 e 007
+     │         │
+     └─→ 009-gamification
+           ← requer 008 (flashcard_events.json + summary_feedback.json)
 ```
 
 **Regras**:
@@ -103,6 +115,8 @@ Preparar materiais de estudo para concursos é um processo manual, fragmentado e
 - **003** e **004** são independentes entre si
 - **005** requer output de **004**; consome **003** opcionalmente
 - **006** e **007** são independentes entre si; ambas requerem **004** + **005**
+- **008** requer **004** + **005**; coexiste com **007** (canais de revisão independentes)
+- **009** requer output de **008** (`flashcard_events.json`, `summary_feedback.json`)
 
 ---
 
@@ -114,6 +128,8 @@ Preparar materiais de estudo para concursos é um processo manual, fragmentado e
 | **Wave 2** | 003-edital + 004-summary | Sim | Edital parseado + tópicos/questões estruturados | 004 = MVP mínimo |
 | **Wave 3** | 005-relevance-engine | — | Classificação 🔥/⚠️/📝 com justificativa | — |
 | **Wave 4** | 006-gdoc + 007-anki | Sim | Google Docs formatados + flashcards Anki | Pipeline completo |
+| **Wave 5** | 008-flashcard-web | — | Plataforma web de revisão com SRS e feedback de resumos | Revisão web |
+| **Wave 6** | 009-gamification | — (requer Wave 5) | Personagem, XP, desbloqueios de jogabilidade | Engajamento |
 
 **MVP mínimo**: Wave 1 + 004 → já entrega resumos estruturados em JSON.
 **MVP com output**: Wave 1 + 004 + 006 → resumos publicados em Google Docs.
@@ -172,6 +188,15 @@ A spec monolítica original continha 6 user stories, 21 FRs e 8 SCs cobrindo des
 | FR-019 | Sem web search v1 | 005 |
 | FR-020 | Comunicação PT-BR | 002 |
 | FR-021 | Reprocessamento check | 002 |
+| FR-022 | Servidor web Node.js + Express.js para flashcards | 008 |
+| FR-023 | Algoritmo SM-2 para agendamento de revisões | 008 |
+| FR-024 | Avaliação de dificuldade (Errei/Difícil/Bom/Fácil) com cálculo de XP | 008 |
+| FR-025 | Feedback de resumos (Correto/Com erros/Observação) | 008 |
+| FR-026 | Dashboard de progresso web (cards revisados, streak, XP) | 008 |
+| FR-027 | Cálculo de XP por evento de revisão e feedback | 009 |
+| FR-028 | Personagem com nível calculado via XP acumulado | 009 |
+| FR-029 | Marcos de desbloqueio de jogabilidade por nível | 009 |
+| FR-030 | API `GET /api/character` para consumo pela spec 008 | 009 |
 
 ---
 
@@ -185,6 +210,9 @@ A spec monolítica original continha 6 user stories, 21 FRs e 8 SCs cobrindo des
 | US4 (P4) | Questões em Google Docs | 006 |
 | US5 (P5) | Flashcards Anki | 007 |
 | US6 (P6) | Observabilidade e Debug | 002 |
+| US7 (P7) | Revisão web de flashcards com SRS | 008 |
+| US8 (P8) | Feedback de resumo vinculado a card | 008 |
+| US9 (P9) | Personagem, XP e desbloqueio de jogabilidade | 009 |
 
 ---
 
@@ -200,6 +228,9 @@ A spec monolítica original continha 6 user stories, 21 FRs e 8 SCs cobrindo des
 | SC-006 | GDoc preserva hierarquia | 006 |
 | SC-007 | Redução 70% tempo | End-to-end (todas) |
 | SC-008 | Auditabilidade via logs | 002 |
+| SC-009 | Resposta < 200ms por revisão de card | 008 |
+| SC-010 | 100% eventos de revisão + feedback persistidos (rastreabilidade 008→009) | 008 + 009 |
+| SC-011 | 100% marcos de desbloqueio verificados sem XP duplicado (idempotência) | 009 |
 
 ---
 
