@@ -1,0 +1,12 @@
+{
+  "servers": {
+    "google-sheets": {
+      "type": "stdio",
+      "command": "C:\\Users\\renan.dalexandro\\.local\\bin\\mcp-google-sheets.exe",
+      "args": [],
+      "env": {
+        "SERVICE_ACCOUNT_PATH": "C:\\Users\\renan.dalexandro\\.claude\\gsheets-credentials.json"
+      }
+    }
+  }
+}
