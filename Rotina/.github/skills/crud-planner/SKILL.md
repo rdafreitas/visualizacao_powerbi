@@ -32,6 +32,8 @@ Ao acionar a skill, apresentar:
 ║  [2] Ação                            ║
 ║  [3] Tarefa                          ║
 ║  [4] Ciclo Trimestral                ║
+║  [5] Bloco de Atividades             ║
+║  [6] Planejamento Guiado             ║
 ║  [v] Voltar ao menu principal        ║
 ╚══════════════════════════════════════╝
 ```
@@ -73,6 +75,8 @@ Se encontrar duplicata, exibir:
 | Ação | [`specialists/acao-crud.md`](specialists/acao-crud.md) |
 | Tarefa | [`specialists/tarefa-crud.md`](specialists/tarefa-crud.md) |
 | Ciclo Trimestral | [`specialists/ciclo-crud.md`](specialists/ciclo-crud.md) |
+| Bloco de Atividades | [`specialists/bloco-crud.md`](specialists/bloco-crud.md) |
+| Planejamento Guiado | [`specialists/guided-planning.md`](specialists/guided-planning.md) |
 
 ## Abas Utilizadas na Planilha
 
@@ -82,6 +86,51 @@ Se encontrar duplicata, exibir:
 | Ações | `AÇÕES` |
 | Tarefas | `TAREFAS` |
 | Ciclo Trimestral | `CICLO TRIMESTRAL` |
+| Blocos | `BLOCOS` |
+
+## Fallback: Acesso Direto via Python
+
+Se o servidor MCP `google-sheets` não estiver disponível (sem resposta, erro de conexão ou ferramenta ausente), **não prossiga silenciosamente**. Siga este protocolo:
+
+### 1. Informar a falha e apresentar opções
+
+Exibir ao usuário:
+
+```
+╔══════════════════════════════════════════════════════╗
+║         ACESSO VIA MCP NÃO DISPONÍVEL                ║
+╠══════════════════════════════════════════════════════╣
+║  O servidor MCP (mcp-google-sheets) não respondeu.   ║
+║                                                      ║
+║  Como deseja prosseguir?                             ║
+║                                                      ║
+║  [1] Usar acesso direto via Python (fallback)        ║
+║  [2] Tentar conectar pelo MCP novamente              ║
+║  [c] Cancelar operação                               ║
+╚══════════════════════════════════════════════════════╝
+```
+
+### 2. Roteamento da escolha
+
+| Escolha | Ação |
+|---|---|
+| `[1]` | Executar `.github/skills/crud-planner/scripts/google_sheets_fallback.py` via Bash |
+| `[2]` | Tentar a operação MCP novamente antes de qualquer escrita |
+| `[c]` | Cancelar e retornar ao menu principal |
+
+### 3. Executar o script de fallback
+
+```bash
+python ".github/skills/crud-planner/scripts/google_sheets_fallback.py"
+```
+
+O script importa as funções `conectar()`, `ler_aba()`, `escrever_linha()` e `atualizar_celula()` — use-as diretamente nas operações da skill em vez de chamar a API do MCP.
+
+Variáveis de ambiente necessárias:
+- `SERVICE_ACCOUNT_PATH` — caminho para o JSON do Service Account (mesmo usado pelo MCP)
+- `GOOGLE_SHEET_ID` — ID da planilha
+
+---
 
 ## Regras de Validação Gerais
 
