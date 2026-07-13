@@ -29,3 +29,10 @@ env/
 *.bak
 .DS_Store
 Thumbs.db
+
+# ── Node / Full Stack ────────────────────────────────────────────────────────
+node_modules/
+dist/
+*.db
+*.db-journal
+prisma/migrations/

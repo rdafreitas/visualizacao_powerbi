@@ -1,0 +1,195 @@
+// apps/api/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ── Enums ────────────────────────────────────────────────
+
+enum StatusAcao {
+  Ativo
+  Proximo      // sem acento para SQLite
+  Reavaliar
+  Permanente
+  Concluido
+  Backlog
+}
+
+enum DiaSemana {
+  Segunda
+  Terca
+  Quarta
+  Quinta
+  Sexta
+  Sabado
+  Domingo
+}
+
+enum DuracaoUnidade {
+  dias
+  semanas
+  meses
+}
+
+enum TipoAtividade {
+  Videoaula
+  Resumo_Leitura
+  Exercicio_Questoes
+  Revisao
+  Projeto
+  Treino_Pratica
+  Reuniao
+  Rotineira
+  A_definir
+}
+
+enum ResultadoAtividade {
+  Feito_completamente
+  Feito_parcialmente
+  Nao_feito
+  Adiado
+}
+
+// ── Models ───────────────────────────────────────────────
+
+model Acao {
+  id          String    @id @default(cuid())
+  abreviacao  String    @unique
+  foco        String
+  status      StatusAcao @default(Ativo)
+  prioritaria Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  blocoAcoes    BlocoAcao[]
+  tarefas       Tarefa[]
+  horariosBloco HorarioBloco[]
+  linhasRotina  LinhaRotina[]
+}
+
+model Bloco {
+  id             String         @id @default(cuid())
+  nome           String                        // Bloco_13.07.2026
+  dataInicio     DateTime
+  dataFim        DateTime
+  duracaoValor   Int
+  duracaoUnidade DuracaoUnidade
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  acoes         BlocoAcao[]
+  horarios      HorarioBloco[]
+  linhasRotina  LinhaRotina[]
+  historico     HistoricoBloco?
+}
+
+model BlocoAcao {
+  id          String  @id @default(cuid())
+  blocoId     String
+  acaoId      String
+  prioritaria Boolean @default(false)
+  ordem       Int     @default(0)
+
+  bloco       Bloco   @relation(fields: [blocoId], references: [id], onDelete: Cascade)
+  acao        Acao    @relation(fields: [acaoId], references: [id])
+
+  @@unique([blocoId, acaoId])
+  @@unique([blocoId, ordem])
+}
+
+model Tarefa {
+  id               String        @id @default(cuid())
+  acaoId           String
+  descricao        String
+  tipo             TipoAtividade
+  localPlataforma  String        @default("")
+  prioridade       Int
+  diasParaConcluir Int           @default(1)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  acao             Acao          @relation(fields: [acaoId], references: [id])
+  linhasRotina     LinhaRotina[]
+
+  // Auto-referência para vínculos entre tarefas
+  vinculadaA       TarefaVinculo[] @relation("TarefaOrigem")
+  vinculadaPor     TarefaVinculo[] @relation("TarefaDestino")
+
+  @@unique([acaoId, prioridade])  // regra de negócio: prioridade única por ação
+}
+
+model TarefaVinculo {
+  id         String @id @default(cuid())
+  origemId   String
+  destinoId  String
+
+  origem     Tarefa @relation("TarefaOrigem",  fields: [origemId],  references: [id], onDelete: Cascade)
+  destino    Tarefa @relation("TarefaDestino", fields: [destinoId], references: [id], onDelete: Cascade)
+
+  @@unique([origemId, destinoId])
+}
+
+model HorarioBloco {
+  id          String   @id @default(cuid())
+  blocoId     String
+  acaoId      String
+  diaSemana   DiaSemana
+  horaInicio  String   // "07:00"
+  horaFim     String   // "08:30"
+  duracao     String   // calculada "01:30"
+  numero      Int      @default(1)
+  createdAt   DateTime @default(now())
+
+  bloco        Bloco        @relation(fields: [blocoId], references: [id], onDelete: Cascade)
+  acao         Acao         @relation(fields: [acaoId], references: [id])
+  linhasRotina LinhaRotina[]
+
+  @@unique([blocoId, diaSemana, numero])
+}
+
+model LinhaRotina {
+  id              String              @id @default(cuid())
+  blocoId         String
+  horarioBlocoId  String
+  tarefaId        String?
+  acaoId          String
+  diaSemana       DiaSemana
+  horaInicio      String
+  horaFim         String
+  prioridade      Int                 @default(0)
+  concluido       Boolean             @default(false)
+  resultado       ResultadoAtividade?
+  togglEntryId    String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  bloco           Bloco               @relation(fields: [blocoId],        references: [id], onDelete: Cascade)
+  horarioBloco    HorarioBloco        @relation(fields: [horarioBlocoId], references: [id])
+  tarefa          Tarefa?             @relation(fields: [tarefaId],       references: [id])
+  acao            Acao                @relation(fields: [acaoId],         references: [id])
+}
+
+model HistoricoBloco {
+  id                   String   @id @default(cuid())
+  blocoId              String   @unique
+  snapshotJson         String   // JSON serializado do estado das linhas no fechamento
+  totalTarefas         Int
+  totalConcluidas      Int
+  percentualConclusao  Float
+  registradoEm         DateTime @default(now())
+
+  bloco                Bloco    @relation(fields: [blocoId], references: [id])
+}
+
+// ── Integrações externas ─────────────────────────────────
+
+model ConfiguracaoApp {
+  chave  String @id
+  valor  String
+  // Ex: "habitica_userId", "toggl_apiToken", "sheets_spreadsheetId"
+}

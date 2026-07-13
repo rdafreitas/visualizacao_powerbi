@@ -1,0 +1,2456 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rotina — Organização Pessoal</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+  :root {
+    --font-sans: 'Inter', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    --bg-deep: #1a0a2e;
+    --bg-mid: #200c3d;
+    --bg-card: #2a1052;
+    --bg-header: #341465;
+    --border: #4a2080;
+    --pink: #e91e8c;
+    --pink-soft: #f06cb8;
+    --teal: #00bcd4;
+    --purple-text: #b39ddb;
+    --purple-dim: #7e57c2;
+    --fg: #f0e6ff;
+    --surface-1: #200c3d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); background: #110520; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+
+  .shell {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    grid-template-rows: 48px 1fr;
+    width: 100%;
+    max-width: 900px;
+    height: 600px;
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--surface-1);
+  }
+
+  /* TOPBAR */
+  .topbar {
+    grid-column: 1 / -1;
+    background: var(--bg-deep);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .logo { color: var(--pink-soft); font-weight: 500; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+  .logo i { color: var(--pink); }
+  .dots { display: flex; gap: 8px; align-items: center; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot-ok { background: #26a69a; }
+  .dot-off { background: #555; }
+  .dot-lbl { font-size: 11px; color: var(--purple-dim); }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: var(--bg-card);
+    border-right: 0.5px solid var(--border);
+    padding: 12px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+  }
+  .sec-label { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--purple-dim); padding: 10px 12px 4px; }
+  .nav { display: flex; align-items: center; gap: 8px; padding: 7px 12px; font-size: 12px; color: var(--purple-text); cursor: pointer; border-left: 2px solid transparent; transition: all .15s; }
+  .nav:hover { background: rgba(233,30,140,.07); color: var(--pink-soft); }
+  .nav.active { background: rgba(233,30,140,.12); color: var(--pink-soft); border-left-color: var(--pink); }
+  .nav i { font-size: 15px; }
+
+  /* MAIN */
+  .main { background: var(--bg-mid); overflow-y: auto; display: flex; flex-direction: column; }
+  .page { padding: 16px; display: none; flex-direction: column; gap: 12px; }
+  .page.active { display: flex; }
+
+  .ph { display: flex; justify-content: space-between; align-items: center; }
+  .ptitle { font-size: 15px; font-weight: 500; color: var(--fg); }
+  .ptitle span { color: var(--pink); }
+  .sub-tag { font-size: 11px; color: var(--purple-dim); }
+
+  /* CARDS */
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .card { background: var(--bg-card); border: 0.5px solid var(--border); border-radius: 10px; padding: 12px; }
+  .clabel { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--teal); margin-bottom: 4px; }
+  .cval { font-size: 20px; font-weight: 500; color: var(--pink); font-family: var(--font-mono); }
+  .cval.teal { color: var(--teal); }
+  .cval.white { color: var(--fg); font-size: 15px; }
+  .csub { font-size: 11px; color: var(--purple-dim); margin-top: 2px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .card-sm { background: var(--bg-card); border: 0.5px solid var(--border); border-radius: 10px; padding: 12px; }
+
+  /* ROW ITEMS */
+  .row-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 0.5px solid var(--border); font-size: 12px; color: var(--fg); }
+  .row-item:last-child { border-bottom: none; }
+  .mono { font-family: var(--font-mono); color: var(--pink); }
+  .mono.teal { color: var(--teal); }
+
+  /* BADGES */
+  .badge { display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 20px; font-size: 10px; font-weight: 500; }
+  .badge-ok { background: rgba(38,166,154,.2); color: #26a69a; }
+  .badge-ab { background: rgba(255,152,0,.2); color: #ff9800; }
+  .badge-fl { background: rgba(233,30,140,.15); color: var(--pink-soft); }
+  .badge-re { background: rgba(0,188,212,.15); color: #4dd0e1; }
+  .badge-er { background: rgba(239,83,80,.15); color: #ef5350; }
+
+  /* PROGRESS BAR */
+  .prog-wrap { margin-top: 8px; }
+  .prog-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--purple-text); margin-bottom: 4px; }
+  .prog-bar { height: 6px; background: var(--bg-deep); border-radius: 3px; overflow: hidden; }
+  .prog-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--pink), #9c27b0); transition: width .4s; }
+  .prog-fill.teal { background: linear-gradient(90deg, var(--teal), #00838f); }
+
+  /* TABLE */
+  .table-wrap { border-radius: 8px; overflow: hidden; border: 0.5px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  thead th { background: var(--bg-header); color: var(--purple-text); font-weight: 500; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; padding: 7px 10px; text-align: left; }
+  tbody tr { border-top: 0.5px solid var(--border); }
+  tbody td { padding: 6px 10px; color: var(--fg); }
+  tbody tr:hover { background: rgba(74,32,128,.3); }
+
+  /* FORMS */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .fg { display: flex; flex-direction: column; gap: 4px; }
+  .fg.full { grid-column: 1 / -1; }
+  .fg label { font-size: 11px; color: var(--purple-text); }
+  .fg input, .fg select, .fg textarea {
+    background: var(--bg-deep); border: 0.5px solid var(--border); border-radius: 6px;
+    color: var(--fg); font-size: 12px; padding: 6px 9px; font-family: var(--font-sans); width: 100%;
+  }
+  .fg textarea { min-height: 56px; resize: none; }
+  .fg input::placeholder { color: var(--border); }
+  .fg select option { background: var(--bg-deep); }
+
+  /* BUTTONS */
+  .btn-row { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; }
+  .btn-pink { background: linear-gradient(135deg,var(--pink),#9c27b0); color: #fff; border: none; border-radius: 6px; padding: 7px 16px; font-size: 12px; font-weight: 500; cursor: pointer; }
+  .btn-teal { background: linear-gradient(135deg,var(--teal),#00838f); color: #fff; border: none; border-radius: 6px; padding: 7px 16px; font-size: 12px; font-weight: 500; cursor: pointer; }
+  .btn-mini { background: var(--bg-header); border: 0.5px solid var(--border); color: var(--purple-text); border-radius: 4px; padding: 3px 8px; font-size: 11px; cursor: pointer; }
+  .btn-mini:hover { color: var(--fg); border-color: var(--purple-dim); }
+  .chk { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--purple-text); cursor: pointer; }
+  .chk input { accent-color: var(--pink); width: auto; }
+
+  /* HÁBITOS CHECK */
+  .hb-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 0.5px solid var(--border); font-size: 12px; color: var(--fg); }
+  .hb-row:last-child { border-bottom: none; }
+  .hb-check { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid var(--border); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .15s; }
+  .hb-check.done { background: var(--pink); border-color: var(--pink); }
+  .hb-check.done::after { content: '✓'; color: #fff; font-size: 10px; }
+  .hb-name { flex: 1; margin: 0 10px; }
+  .hb-name.done-txt { text-decoration: line-through; color: var(--purple-dim); }
+  .hb-streak { font-size: 11px; color: var(--purple-dim); font-family: var(--font-mono); }
+
+  /* TIMER */
+  .timer-display { font-size: 32px; font-family: var(--font-mono); color: var(--teal); text-align: center; padding: 12px 0; }
+  .timer-controls { display: flex; gap: 8px; justify-content: center; }
+
+  /* NOTA RAPIDA */
+  .nota-area { background: var(--bg-deep); border: 0.5px solid var(--border); border-radius: 8px; padding: 10px; min-height: 80px; color: var(--fg); font-size: 12px; width: 100%; resize: none; font-family: var(--font-sans); }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ── PLANEJAMENTO DE ROTINA ─────────────────────── */
+  .plan-top-btns { display: flex; gap: 8px; }
+  .btn-plan { display: flex; align-items: center; gap: 5px; background: var(--bg-card); border: 0.5px solid var(--border); border-radius: 7px; color: var(--purple-text); font-size: 11px; padding: 6px 12px; cursor: pointer; transition: all .15s; }
+  .btn-plan:hover { color: var(--fg); border-color: var(--purple-dim); }
+  .btn-plan.meta  { border-color: rgba(233,30,140,.4); color: var(--pink-soft); }
+  .btn-plan.acao  { border-color: rgba(0,188,212,.4);  color: var(--teal); }
+  .btn-plan.tarefa{ border-color: rgba(255,213,79,.4); color: #ffd54f; }
+  .btn-plan:hover.meta  { background: rgba(233,30,140,.1); }
+  .btn-plan:hover.acao  { background: rgba(0,188,212,.1);  }
+  .btn-plan:hover.tarefa{ background: rgba(255,213,79,.1); }
+
+  .plan-divider { border: none; border-top: 0.5px solid var(--border); margin: 2px 0; }
+
+  /* Esteira de abas */
+  .plan-tabs { display: flex; gap: 0; border-bottom: 0.5px solid var(--border); }
+  .plan-tab { padding: 7px 14px; font-size: 11px; color: var(--purple-text); cursor: pointer; border-bottom: 2px solid transparent; transition: all .15s; white-space: nowrap; display: flex; align-items: center; gap: 5px; }
+  .plan-tab:hover { color: var(--fg); }
+  .plan-tab.active { color: var(--pink-soft); border-bottom-color: var(--pink); }
+
+  /* Painéis das sub-abas */
+  .plan-panel { display: none; flex-direction: column; gap: 10px; }
+  .plan-panel.active { display: flex; }
+
+  /* Tabela de ações selecionadas */
+  .acoes-table-wrap { border-radius: 7px; overflow: hidden; border: 0.5px solid var(--border); }
+  .acoes-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .acoes-table thead th { background: var(--bg-header); color: var(--purple-text); font-size: 10px; text-transform: uppercase; letter-spacing: .06em; padding: 6px 10px; text-align: left; font-weight: 500; }
+  .acoes-table tbody tr { border-top: 0.5px solid var(--border); }
+  .acoes-table tbody tr:hover { background: rgba(74,32,128,.2); }
+  .acoes-table tbody td { padding: 5px 10px; color: var(--fg); }
+  .acoes-table .prioridade-cell { text-align: center; }
+
+  /* Linha de ação na tabela */
+  .acoes-row-select { background: var(--bg-deep); border: 0.5px solid var(--border); border-radius: 5px; color: var(--fg); font-size: 11px; padding: 3px 6px; width: 100%; }
+
+  /* Bloco de adição de ação */
+  .add-acao-row { display: flex; gap: 8px; align-items: center; padding: 8px 0; border-top: 0.5px solid var(--border); }
+  .add-acao-row select, .add-acao-row input { flex: 1; background: var(--bg-deep); border: 0.5px solid var(--border); border-radius: 5px; color: var(--fg); font-size: 11px; padding: 5px 8px; }
+  .btn-add-linha { background: rgba(233,30,140,.12); border: 0.5px solid rgba(233,30,140,.4); border-radius: 5px; color: var(--pink-soft); font-size: 11px; padding: 5px 10px; cursor: pointer; white-space: nowrap; }
+  .btn-add-linha:hover { background: rgba(233,30,140,.2); }
+  .btn-rm { background: none; border: none; color: var(--border); font-size: 13px; cursor: pointer; padding: 0 4px; }
+  .btn-rm:hover { color: var(--pink-soft); }
+
+  /* Horário pill na tabela de blocos */
+  .hora-pill { font-family: var(--font-mono); font-size: 10px; color: var(--teal); background: rgba(0,188,212,.1); border-radius: 3px; padding: 1px 5px; }
+
+  /* Modal flutuante */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(10,0,25,.75); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
+  .modal-overlay.open { display: flex; }
+  .modal-box { background: var(--bg-card); border: 0.5px solid var(--border); border-radius: 12px; padding: 18px; width: 460px; max-width: 95vw; max-height: 82vh; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; }
+  .modal-title { font-size: 13px; font-weight: 500; color: var(--fg); }
+  .modal-title span { color: var(--pink); }
+  .modal-close { background: none; border: none; color: var(--purple-dim); font-size: 16px; cursor: pointer; padding: 0; line-height: 1; }
+  .modal-close:hover { color: var(--fg); }
+  .modal-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .modal-form-grid .fg.full { grid-column: 1 / -1; }
+
+  /* Checkbox */
+  .vinc-check { accent-color: var(--pink); }
+
+  /* Dias da semana pills */
+  .dias-pills { display: flex; gap: 5px; flex-wrap: wrap; }
+  .dia-pill { background: var(--bg-deep); border: 0.5px solid var(--border); border-radius: 20px; padding: 5px 12px; font-size: 11px; color: var(--purple-text); cursor: pointer; transition: all .15s; }
+  .dia-pill.active { background: rgba(233,30,140,.15); border-color: var(--pink); color: var(--pink-soft); font-weight: 500; }
+
+  /* Planejamento de Rotina — botões topo */
+  .plan-top-btns { display: flex; gap: 6px; }
+  .btn-plan { border: none; border-radius: 6px; padding: 6px 12px; font-size: 11px; font-weight: 500; cursor: pointer; transition: opacity .15s; }
+  .btn-plan:hover { opacity: .85; }
+  .btn-plan.meta   { background: linear-gradient(135deg,#9c27b0,#6a1b9a); color: #fff; }
+  .btn-plan.acao   { background: linear-gradient(135deg,var(--pink),#880e4f); color: #fff; }
+  .btn-plan.tarefa { background: linear-gradient(135deg,var(--teal),#00695c); color: #fff; }
+
+  /* Divisor */
+  .plan-divider { border: none; border-top: 0.5px solid var(--border); margin: 4px 0; }
+
+  /* Esteira de abas */
+  .plan-tabs { display: flex; gap: 4px; background: var(--bg-deep); border-radius: 8px; padding: 3px; }
+  .plan-tab { flex: 1; padding: 6px 8px; font-size: 11px; color: var(--purple-text); border-radius: 6px; cursor: pointer; text-align: center; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all .15s; }
+  .plan-tab:hover { color: var(--fg); }
+  .plan-tab.active { background: var(--bg-card); color: var(--pink-soft); border: 0.5px solid var(--border); }
+
+  /* Painéis de sub-aba */
+  .plan-panel { display: none; flex-direction: column; gap: 10px; }
+  .plan-panel.active { display: flex; }
+
+  /* Tabela de ações/blocos/tarefas */
+  .acoes-table-wrap { border-radius: 8px; overflow: hidden; border: 0.5px solid var(--border); }
+  .acoes-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .acoes-table thead th { background: var(--bg-header); color: var(--purple-text); font-size: 10px; font-weight: 500; letter-spacing:.05em; text-transform: uppercase; padding: 7px 8px; text-align: left; }
+  .acoes-table tbody tr { border-top: 0.5px solid var(--border); }
+  .acoes-table tbody td { padding: 6px 8px; color: var(--fg); vertical-align: middle; }
+  .acoes-table tbody tr:hover { background: rgba(74,32,128,.2); }
+  .acoes-row-select { background: var(--bg-deep); border: 0.5px solid var(--border); border-radius: 4px; color: var(--fg); font-size: 11px; padding: 3px 5px; width: 100%; }
+  .prioridade-cell { text-align: center; }
+  .btn-add-linha { background: rgba(233,30,140,.1); border: 0.5px solid rgba(233,30,140,.3); border-radius: 5px; color: var(--pink-soft); font-size: 11px; padding: 4px 10px; cursor: pointer; }
+  .btn-add-linha:hover { background: rgba(233,30,140,.2); }
+  .btn-rm { background: none; border: none; color: var(--border); font-size: 12px; cursor: pointer; padding: 2px 4px; border-radius: 3px; }
+  .btn-rm:hover { color: #ef5350; background: rgba(239,83,80,.1); }
+  .hora-pill { font-family: var(--font-mono); font-size: 10px; background: rgba(0,188,212,.1); border-radius: 3px; padding: 1px 5px; color: var(--teal); }
+
+  /* Hero Habitica */
+  .hab-hero { background: var(--bg-card); border: 0.5px solid var(--border); border-radius: 10px; padding: 12px 14px; display: flex; gap: 16px; align-items: center; }
+  .hab-avatar { width: 38px; height: 38px; border-radius: 8px; background: linear-gradient(135deg,#9c27b0,var(--pink)); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .hab-info { flex: 1; min-width: 0; }
+  .hab-name { font-size: 13px; font-weight: 600; color: var(--fg); }
+  .hab-level { font-size: 10px; color: var(--pink-soft); margin-top: 1px; }
+  .hab-bars { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
+  .hab-bar-row { display: flex; align-items: center; gap: 6px; }
+  .hab-bar-icon { font-size: 10px; width: 14px; text-align: center; flex-shrink: 0; }
+  .hab-bar-track { flex: 1; height: 6px; background: var(--bg-deep); border-radius: 3px; overflow: hidden; }
+  .hab-bar-fill { height: 100%; border-radius: 3px; transition: width .4s; }
+  .hab-bar-fill.hp  { background: linear-gradient(90deg,#ef5350,#e91e63); }
+  .hab-bar-fill.mp  { background: linear-gradient(90deg,#42a5f5,#1e88e5); }
+  .hab-bar-fill.exp { background: linear-gradient(90deg,#ffd54f,#ff8f00); }
+  .hab-bar-val { font-size: 10px; color: var(--purple-text); font-family: var(--font-mono); width: 50px; text-align: right; flex-shrink: 0; }
+
+  .ativ-cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .ativ-col { background: var(--bg-card); border: 0.5px solid var(--border); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .ativ-col-header { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--teal); display: flex; align-items: center; gap: 5px; margin-bottom: 2px; }
+  .ativ-col-header .dot-periodo { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .dot-manha { background: #ffd54f; }
+  .dot-tarde  { background: var(--teal); }
+  .dot-noite  { background: var(--purple-dim); }
+  .ativ-item { background: transparent; border: none; border-bottom: 0.5px solid rgba(74,32,128,.5); padding: 9px 4px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background .12s; border-radius: 4px; }
+  .ativ-item:last-child { border-bottom: none; }
+  .ativ-item:hover { background: rgba(74,32,128,.25); }
+  .ativ-obj  { font-size: 12px; font-weight: 400; color: var(--fg); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ativ-hora { font-size: 11px; font-family: var(--font-mono); color: var(--teal); flex-shrink: 0; }
+  .ativ-arrow { color: var(--border); font-size: 10px; flex-shrink: 0; transition: color .15s, transform .2s; display: inline-block; }
+  .ativ-item:hover .ativ-arrow { color: var(--purple-dim); }
+  .ativ-item.open .ativ-arrow { transform: rotate(90deg); color: var(--pink-soft); }
+  .ativ-drawer { max-height: 0; overflow: hidden; transition: max-height .25s ease, opacity .2s; opacity: 0; }
+  .ativ-drawer.open { max-height: 120px; opacity: 1; }
+  .ativ-drawer-inner { padding: 8px 4px 6px; display: flex; flex-direction: column; gap: 6px; border-top: 0.5px solid rgba(74,32,128,.5); margin: 0 0 2px; }
+  .ativ-select { width: 100%; background: var(--bg-deep); border: 0.5px solid var(--border); border-radius: 5px; color: var(--purple-dim); font-size: 11px; padding: 5px 7px; font-family: var(--font-sans); cursor: pointer; }
+  .ativ-select option { background: var(--bg-deep); }
+  .ativ-select.feito     { color: #26a69a; border-color: rgba(38,166,154,.5); }
+  .ativ-select.parcial   { color: #ff9800; border-color: rgba(255,152,0,.5); }
+  .ativ-select.nao-feito { color: var(--pink-soft); border-color: rgba(233,30,140,.4); }
+  .ativ-select.adiado    { color: var(--purple-text); border-color: rgba(179,157,219,.4); }
+  .ativ-toggl-btn { display: flex; align-items: center; justify-content: center; gap: 5px; background: var(--bg-header); border: 0.5px solid var(--border); border-radius: 5px; color: var(--teal); font-size: 10px; padding: 4px 0; cursor: pointer; transition: border-color .15s, color .15s; }
+  .ativ-toggl-btn:hover { border-color: var(--teal); color: #fff; }
+  .dash-view-toggle { display: flex; gap: 8px; }
+  .dash-view-btn { flex: 1; background: var(--bg-card); border: 0.5px solid var(--border); border-radius: 8px; padding: 7px 12px; font-size: 11px; color: var(--purple-text); cursor: pointer; text-align: center; transition: all .15s; }
+  .dash-view-btn:hover { color: var(--fg); border-color: var(--purple-dim); }
+  .dash-view-btn.active { background: rgba(233,30,140,.12); border-color: var(--pink); color: var(--pink-soft); }
+  .dash-view-panel { display: none; }
+  .dash-view-panel.active { display: block; }
+  .gantt-wrap { background: var(--bg-card); border: 0.5px solid var(--border); border-radius: 10px; padding: 12px; overflow-x: auto; }
+  .gantt-title { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--teal); margin-bottom: 10px; }
+  .gantt-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .gantt-head-spacer { width: 120px; flex-shrink: 0; }
+  .gantt-months { flex: 1; display: flex; }
+  .gantt-month { flex: 1; font-size: 9px; color: var(--purple-dim); text-align: center; border-left: 0.5px solid rgba(74,32,128,.4); padding-left: 3px; }
+  .gantt-grid { display: flex; flex-direction: column; gap: 5px; min-width: 500px; }
+  .gantt-row { display: flex; align-items: center; gap: 8px; }
+  .gantt-label { font-size: 10px; color: var(--purple-text); width: 120px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .gantt-track { flex: 1; height: 18px; background: var(--bg-deep); border-radius: 4px; position: relative; overflow: hidden; }
+  .gantt-bar { position: absolute; top: 2px; height: 14px; border-radius: 3px; display: flex; align-items: center; padding: 0 5px; font-size: 9px; font-weight: 500; color: #fff; white-space: nowrap; overflow: hidden; }
+  .gantt-badge { font-size: 9px; padding: 1px 5px; border-radius: 3px; margin-left: 6px; flex-shrink: 0; }
+  .indicadores-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ind-card { background: var(--bg-card); border: 0.5px solid var(--border); border-radius: 10px; padding: 12px; }
+  .ind-card.alert { border-color: rgba(233,30,140,.35); }
+  .ind-card.ok    { border-color: rgba(38,166,154,.3); }
+  .ind-card.warn  { border-color: rgba(255,152,0,.3); }
+  .ind-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .ind-label { font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: var(--purple-text); }
+  .ind-icon  { font-size: 14px; }
+  .ind-val   { font-size: 22px; font-weight: 600; font-family: var(--font-mono); }
+  .ind-val.green  { color: #26a69a; }
+  .ind-val.yellow { color: #ffd54f; }
+  .ind-val.red    { color: #ef5350; }
+  .ind-val.blue   { color: #42a5f5; }
+  .ind-desc  { font-size: 10px; color: var(--purple-dim); margin-top: 3px; }
+  .ind-sparkline { display: flex; align-items: flex-end; gap: 2px; height: 22px; margin-top: 8px; }
+  .ind-spark-bar { flex: 1; border-radius: 2px 2px 0 0; min-height: 2px; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="logo">
+      <i class="ti ti-calendar-check"></i>
+      Rotina <span style="color:var(--purple-dim);margin:0 4px">/</span>
+      <span>Organização Pessoal</span>
+    </div>
+    <div class="dots">
+      <span class="dot dot-ok"></span><span class="dot-lbl">Hábitos</span>
+      <span class="dot dot-ok" style="margin-left:6px"></span><span class="dot-lbl">Metas</span>
+      <span class="dot dot-ok" style="margin-left:6px"></span><span class="dot-lbl">Timer</span>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <span class="sec-label">Rotina</span>
+    <div class="nav active" onclick="show('dashboard',this)"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
+    <div class="nav" onclick="show('habitos',this)"><i class="ti ti-layout-list"></i> Planejamento de Rotina</div>
+    <div class="nav" onclick="show('ciclo',this)"><i class="ti ti-calendar-event"></i> Rotina Atual</div>
+    <div class="nav" onclick="show('metas',this)"><i class="ti ti-history"></i> Histórico</div>
+
+    <span class="sec-label">Integrações</span>
+    <div class="nav" onclick="show('timer',this)"><i class="ti ti-star"></i> Habitica</div>
+    <div class="nav" onclick="show('notas',this)"><i class="ti ti-clock"></i> Toggl</div>
+
+    <span class="sec-label">Planilha</span>
+    <div class="nav" onclick="show('tarefas',this)"><i class="ti ti-list"></i> Tarefas</div>
+    <div class="nav" onclick="show('estudos',this)"><i class="ti ti-book-2"></i> Plano de Estudos</div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="p-dashboard">
+
+      <!-- LINHA 1A: Hero Habitica + Atividades do Dia -->
+      <div style="display:grid;grid-template-columns:220px 1fr;gap:8px;align-items:start">
+
+        <!-- Hero Habitica -->
+        <div class="hab-hero" style="flex-direction:column;align-items:flex-start">
+          <div style="display:flex;gap:10px;align-items:center;width:100%">
+            <div class="hab-avatar">⚔️</div>
+            <div class="hab-info">
+              <div class="hab-name">Renan D'Alexandro</div>
+              <div class="hab-level">Level 24 · Warrior</div>
+            </div>
+          </div>
+          <div class="hab-bars" style="width:100%">
+            <div class="hab-bar-row">
+              <span class="hab-bar-icon">❤️</span>
+              <div class="hab-bar-track"><div class="hab-bar-fill hp" style="width:52%"></div></div>
+              <span class="hab-bar-val">47/90</span>
+            </div>
+            <div class="hab-bar-row">
+              <span class="hab-bar-icon">💧</span>
+              <div class="hab-bar-track"><div class="hab-bar-fill mp" style="width:68%"></div></div>
+              <span class="hab-bar-val">61/90</span>
+            </div>
+            <div class="hab-bar-row">
+              <span class="hab-bar-icon">⭐</span>
+              <div class="hab-bar-track"><div class="hab-bar-fill exp" style="width:35%"></div></div>
+              <span class="hab-bar-val">350/1k</span>
+            </div>
+          </div>
+          <div style="margin-top:8px;display:flex;gap:8px;width:100%">
+            <div style="flex:1;background:var(--bg-deep);border:0.5px solid var(--border);border-radius:6px;padding:5px 8px;text-align:center">
+              <div style="font-size:9px;color:var(--purple-dim)">Gold</div>
+              <div style="font-size:13px;font-family:var(--font-mono);color:#ffd54f">312 GP</div>
+            </div>
+            <div style="flex:1;background:var(--bg-deep);border:0.5px solid var(--border);border-radius:6px;padding:5px 8px;text-align:center">
+              <div style="font-size:9px;color:var(--purple-dim)">Streaks</div>
+              <div style="font-size:13px;font-family:var(--font-mono);color:var(--pink)">🔥 7</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Atividades do Dia -->
+        <div class="ativ-cols">
+          <!-- MANHÃ -->
+          <div class="ativ-col">
+            <div class="ativ-col-header">
+              <i class="ti ti-user" style="font-size:11px;color:var(--purple-text)"></i>
+              <span class="dot-periodo dot-manha"></span> Manhã
+            </div>
+            <div class="ativ-wrap">
+              <div class="ativ-item" onclick="toggleAtiv(this)">
+                <span class="ativ-obj">Ficar com Leleca/Casa</span>
+                <span class="ativ-hora">07:00</span>
+                <span class="ativ-arrow">▶</span>
+              </div>
+              <div class="ativ-drawer">
+                <div class="ativ-drawer-inner">
+                  <select class="ativ-select" onchange="onAtivChange(this)">
+                    <option value="">O que foi feito?</option>
+                    <option>Feito completamente</option>
+                    <option>Feito parcialmente</option>
+                    <option>Não feito</option>
+                    <option>Adiado</option>
+                  </select>
+                  <button class="ativ-toggl-btn" onclick="abrirToggl('Ficar com Leleca/Casa')">⏱ Registrar no Toggl</button>
+                </div>
+              </div>
+            </div>
+            <div class="ativ-wrap">
+              <div class="ativ-item" onclick="toggleAtiv(this)">
+                <span class="ativ-obj">Musculação - A - Superiores</span>
+                <span class="ativ-hora">07:15</span>
+                <span class="ativ-arrow">▶</span>
+              </div>
+              <div class="ativ-drawer">
+                <div class="ativ-drawer-inner">
+                  <select class="ativ-select" onchange="onAtivChange(this)">
+                    <option value="">O que foi feito?</option>
+                    <option>Feito completamente</option>
+                    <option>Feito parcialmente</option>
+                    <option>Não feito</option>
+                    <option>Adiado</option>
+                  </select>
+                  <button class="ativ-toggl-btn" onclick="abrirToggl('Musculação - A - Superiores')">⏱ Registrar no Toggl</button>
+                </div>
+              </div>
+            </div>
+            <div class="ativ-wrap">
+              <div class="ativ-item" onclick="toggleAtiv(this)">
+                <span class="ativ-obj">Pós-Grad — Linguagem de Prog.</span>
+                <span class="ativ-hora">08:30</span>
+                <span class="ativ-arrow">▶</span>
+              </div>
+              <div class="ativ-drawer">
+                <div class="ativ-drawer-inner">
+                  <select class="ativ-select" onchange="onAtivChange(this)">
+                    <option value="">O que foi feito?</option>
+                    <option>Feito completamente</option>
+                    <option>Feito parcialmente</option>
+                    <option>Não feito</option>
+                    <option>Adiado</option>
+                  </select>
+                  <button class="ativ-toggl-btn" onclick="abrirToggl('Pós-Graduação')">⏱ Registrar no Toggl</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TARDE -->
+          <div class="ativ-col">
+            <div class="ativ-col-header">
+              <i class="ti ti-sun" style="font-size:11px;color:var(--purple-text)"></i>
+              <span class="dot-periodo dot-tarde"></span> Tarde
+            </div>
+            <div class="ativ-wrap">
+              <div class="ativ-item" onclick="toggleAtiv(this)">
+                <span class="ativ-obj">Demandas — Diárias</span>
+                <span class="ativ-hora">09:00</span>
+                <span class="ativ-arrow">▶</span>
+              </div>
+              <div class="ativ-drawer">
+                <div class="ativ-drawer-inner">
+                  <select class="ativ-select" onchange="onAtivChange(this)">
+                    <option value="">O que foi feito?</option>
+                    <option>Feito completamente</option>
+                    <option>Feito parcialmente</option>
+                    <option>Não feito</option>
+                    <option>Adiado</option>
+                  </select>
+                  <button class="ativ-toggl-btn" onclick="abrirToggl('Demandas - Diárias')">⏱ Registrar no Toggl</button>
+                </div>
+              </div>
+            </div>
+            <div class="ativ-wrap">
+              <div class="ativ-item" onclick="toggleAtiv(this)">
+                <span class="ativ-obj">Mudança Pontual — Diário</span>
+                <span class="ativ-hora">13:30</span>
+                <span class="ativ-arrow">▶</span>
+              </div>
+              <div class="ativ-drawer">
+                <div class="ativ-drawer-inner">
+                  <select class="ativ-select" onchange="onAtivChange(this)">
+                    <option value="">O que foi feito?</option>
+                    <option>Feito completamente</option>
+                    <option>Feito parcialmente</option>
+                    <option>Não feito</option>
+                    <option>Adiado</option>
+                  </select>
+                  <button class="ativ-toggl-btn" onclick="abrirToggl('Ajuste dos Planos - Mudança Pontual')">⏱ Registrar no Toggl</button>
+                </div>
+              </div>
+            </div>
+            <div class="ativ-wrap">
+              <div class="ativ-item" onclick="toggleAtiv(this)">
+                <span class="ativ-obj">Demandas — Diárias (tarde)</span>
+                <span class="ativ-hora">14:00</span>
+                <span class="ativ-arrow">▶</span>
+              </div>
+              <div class="ativ-drawer">
+                <div class="ativ-drawer-inner">
+                  <select class="ativ-select" onchange="onAtivChange(this)">
+                    <option value="">O que foi feito?</option>
+                    <option>Feito completamente</option>
+                    <option>Feito parcialmente</option>
+                    <option>Não feito</option>
+                    <option>Adiado</option>
+                  </select>
+                  <button class="ativ-toggl-btn" onclick="abrirToggl('Demandas - Diárias tarde')">⏱ Registrar no Toggl</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- NOITE -->
+          <div class="ativ-col">
+            <div class="ativ-col-header">
+              <i class="ti ti-moon" style="font-size:11px;color:var(--purple-text)"></i>
+              <span class="dot-periodo dot-noite"></span> Noite
+            </div>
+            <div class="ativ-wrap">
+              <div class="ativ-item" onclick="toggleAtiv(this)">
+                <span class="ativ-obj">Resumo/Leitura — Concurso</span>
+                <span class="ativ-hora">20:00</span>
+                <span class="ativ-arrow">▶</span>
+              </div>
+              <div class="ativ-drawer">
+                <div class="ativ-drawer-inner">
+                  <select class="ativ-select" onchange="onAtivChange(this)">
+                    <option value="">O que foi feito?</option>
+                    <option>Feito completamente</option>
+                    <option>Feito parcialmente</option>
+                    <option>Não feito</option>
+                    <option>Adiado</option>
+                  </select>
+                  <button class="ativ-toggl-btn" onclick="abrirToggl('Resumo/Leitura - Concurso')">⏱ Registrar no Toggl</button>
+                </div>
+              </div>
+            </div>
+            <div class="ativ-wrap">
+              <div class="ativ-item" onclick="toggleAtiv(this)">
+                <span class="ativ-obj">Desativar (Sair do PC)</span>
+                <span class="ativ-hora">22:00</span>
+                <span class="ativ-arrow">▶</span>
+              </div>
+              <div class="ativ-drawer">
+                <div class="ativ-drawer-inner">
+                  <select class="ativ-select" onchange="onAtivChange(this)">
+                    <option value="">O que foi feito?</option>
+                    <option>Feito completamente</option>
+                    <option>Feito parcialmente</option>
+                    <option>Não feito</option>
+                    <option>Adiado</option>
+                  </select>
+                  <button class="ativ-toggl-btn" onclick="abrirToggl('Higiene do Sono - Desativar')">⏱ Registrar no Toggl</button>
+                </div>
+              </div>
+            </div>
+            <div class="ativ-wrap">
+              <div class="ativ-item" onclick="toggleAtiv(this)">
+                <span class="ativ-obj">Livro / Meditação</span>
+                <span class="ativ-hora">22:40</span>
+                <span class="ativ-arrow">▶</span>
+              </div>
+              <div class="ativ-drawer">
+                <div class="ativ-drawer-inner">
+                  <select class="ativ-select" onchange="onAtivChange(this)">
+                    <option value="">O que foi feito?</option>
+                    <option>Feito completamente</option>
+                    <option>Feito parcialmente</option>
+                    <option>Não feito</option>
+                    <option>Adiado</option>
+                  </select>
+                  <button class="ativ-toggl-btn" onclick="abrirToggl('Higiene do Sono - Livro/Meditação')">⏱ Registrar no Toggl</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LINHA 2: Toggle de visualização -->
+      <div class="dash-view-toggle">
+        <button class="dash-view-btn active" id="btn-gantt" onclick="switchView('gantt')">
+          📊 Acompanhe seu planejamento
+        </button>
+        <button class="dash-view-btn" id="btn-indicadores" onclick="switchView('indicadores')">
+          📈 Avalie sua evolução
+        </button>
+      </div>
+
+      <!-- PAINEL GANTT (padrão) -->
+      <div class="dash-view-panel active" id="panel-gantt">
+        <div class="gantt-wrap">
+          <div class="gantt-title">Gráfico de Gantt — Ações do Bloco_01/06/26 · Ciclo 3º Trimestre: Jul → Set 2026</div>
+          <div class="gantt-head">
+            <div class="gantt-head-spacer"></div>
+            <div class="gantt-months">
+              <div class="gantt-month">Jul</div>
+              <div class="gantt-month">Ago</div>
+              <div class="gantt-month">Set</div>
+            </div>
+          </div>
+          <div class="gantt-grid">
+            <!-- Linha marcador hoje (11/jul = ~3.7% do trimestre) -->
+            <div class="gantt-row" style="margin-bottom:-2px;pointer-events:none">
+              <div style="width:120px;flex-shrink:0"></div>
+              <div style="flex:1;position:relative;height:6px">
+                <div style="position:absolute;left:3.7%;top:-4px;width:1.5px;height:220px;background:rgba(233,30,140,.55);z-index:5"></div>
+                <span style="position:absolute;left:4%;top:0;font-size:8px;color:var(--pink-soft)">Hoje</span>
+              </div>
+            </div>
+            <!-- REAVALIAR — alta prioridade -->
+            <div class="gantt-row">
+              <div class="gantt-label" title="Dores no Corpo — Musculação A/B">🔴 Dores · Musc. A/B</div>
+              <div class="gantt-track">
+                <div class="gantt-bar" style="left:0%;width:14%;background:linear-gradient(90deg,#ef5350,#c62828)">Reavaliar</div>
+              </div>
+              <span class="gantt-badge badge-fl">Reavaliar</span>
+            </div>
+            <div class="gantt-row">
+              <div class="gantt-label" title="Cargo Melhor — Python / DevOps / Agente PBI">🔴 Cargo · Python/DevOps</div>
+              <div class="gantt-track">
+                <div class="gantt-bar" style="left:0%;width:14%;background:linear-gradient(90deg,#e91e8c,#880e4f)">Reavaliar</div>
+              </div>
+              <span class="gantt-badge badge-fl">Reavaliar</span>
+            </div>
+            <div class="gantt-row">
+              <div class="gantt-label" title="Qualificação TI — Pós-Grad / Faculdade">🔴 Qualif. TI · Pós-Grad</div>
+              <div class="gantt-track">
+                <div class="gantt-bar" style="left:0%;width:14%;background:linear-gradient(90deg,#ab47bc,#6a1b9a)">Reavaliar</div>
+              </div>
+              <span class="gantt-badge badge-fl">Reavaliar</span>
+            </div>
+            <!-- PRÓXIMO -->
+            <div class="gantt-row">
+              <div class="gantt-label" title="Melhorar Exame — Cross Fit, Futevôlei, Natação…">🟡 Melhorar Exame · Esportes</div>
+              <div class="gantt-track">
+                <div class="gantt-bar" style="left:0%;width:14%;background:linear-gradient(90deg,#42a5f5,#1565c0)">Próximo</div>
+              </div>
+              <span class="gantt-badge badge-re">Próximo</span>
+            </div>
+            <!-- CONCLUÍDO -->
+            <div class="gantt-row">
+              <div class="gantt-label" title="Pós-Grad 01 — Intro sobre IA · Concluído">✅ Pós-Grad 01 · Intro IA</div>
+              <div class="gantt-track">
+                <div class="gantt-bar" style="left:0%;width:4%;background:linear-gradient(90deg,#26a69a,#004d40)">Concluído</div>
+              </div>
+              <span class="gantt-badge badge-ok">Concluído</span>
+            </div>
+            <!-- PERMANENTES -->
+            <div class="gantt-row">
+              <div class="gantt-label" title="Hábitos Saudáveis — Higiene do Sono, Rotina de Ativação, Ajuste dos Planos">🟢 Hábitos Saudáveis</div>
+              <div class="gantt-track">
+                <div class="gantt-bar" style="left:0%;width:100%;background:linear-gradient(90deg,#7e57c2,#311b92)">Permanente · ano todo</div>
+              </div>
+              <span class="gantt-badge badge-ok">Permanente</span>
+            </div>
+            <div class="gantt-row">
+              <div class="gantt-label" title="Tarefa Work — Daily, Demandas, Reuniões">🟢 Tarefa Work · Daily</div>
+              <div class="gantt-track">
+                <div class="gantt-bar" style="left:0%;width:100%;background:linear-gradient(90deg,#00bcd4,#006064)">Permanente · ano todo</div>
+              </div>
+              <span class="gantt-badge badge-ok">Permanente</span>
+            </div>
+            <div class="gantt-row">
+              <div class="gantt-label" title="Afinidade Relação — Tempo Útil Juntinho">🟢 Afinidade · Juntinho</div>
+              <div class="gantt-track">
+                <div class="gantt-bar" style="left:0%;width:100%;background:linear-gradient(90deg,#f06cb8,#880e4f)">Permanente · ano todo</div>
+              </div>
+              <span class="gantt-badge badge-ok">Permanente</span>
+            </div>
+            <div class="gantt-row">
+              <div class="gantt-label" title="Lazer — Jogos Roguelike / Co-op Parças">🟢 Lazer · Jogos</div>
+              <div class="gantt-track">
+                <div class="gantt-bar" style="left:0%;width:100%;background:linear-gradient(90deg,#ffd54f,#e65100)">Permanente · ano todo</div>
+              </div>
+              <span class="gantt-badge" style="background:rgba(255,213,79,.15);color:#ffd54f;font-size:9px;padding:1px 5px;border-radius:3px">Permanente</span>
+            </div>
+          </div>
+          <div style="margin-top:8px;display:flex;gap:12px;flex-wrap:wrap">
+            <span style="font-size:9px;color:var(--purple-dim)">🔴 Alta prioridade &nbsp;·&nbsp; 🟡 Próximo &nbsp;·&nbsp; ✅ Concluído &nbsp;·&nbsp; 🟢 Permanente &nbsp;·&nbsp; <span style="color:rgba(233,30,140,.8)">│</span> Hoje 11/jul</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAINEL INDICADORES -->
+      <div class="dash-view-panel" id="panel-indicadores">
+        <div class="indicadores-grid">
+          <div class="ind-card ok">
+            <div class="ind-header">
+              <span class="ind-label">Ações Ativas no Bloco</span>
+              <span class="ind-icon">🎯</span>
+            </div>
+            <div class="ind-val green">13</div>
+            <div class="ind-desc">Do total de ações cadastradas (Permanentes + Bloco_01/06/26)</div>
+          </div>
+          <div class="ind-card alert">
+            <div class="ind-header">
+              <span class="ind-label">Em Reavaliar</span>
+              <span class="ind-icon">⚠️</span>
+            </div>
+            <div class="ind-val red">3</div>
+            <div class="ind-desc">Dores no Corpo · Cargo Melhor · Qualificação TI — precisam de atenção</div>
+          </div>
+          <div class="ind-card ok">
+            <div class="ind-header">
+              <span class="ind-label">Ação Concluída</span>
+              <span class="ind-icon">✅</span>
+            </div>
+            <div class="ind-val green">1</div>
+            <div class="ind-desc">Pós-Graduação — 01. Intro sobre IA · concluída em 02/fev</div>
+          </div>
+          <div class="ind-card warn">
+            <div class="ind-header">
+              <span class="ind-label">Próximas a Iniciar</span>
+              <span class="ind-icon">🔜</span>
+            </div>
+            <div class="ind-val yellow">5</div>
+            <div class="ind-desc">Melhorar Exame: Cross Fit, Futevôlei, Beach Tennis, Natação, Pilates</div>
+          </div>
+          <div class="ind-card ok">
+            <div class="ind-header">
+              <span class="ind-label">Ciclo Atual</span>
+              <span class="ind-icon">📅</span>
+            </div>
+            <div class="ind-val blue" style="font-size:14px">3º Trim.</div>
+            <div class="ind-desc">01/07/2026 → 30/09/2026 · Foco: Carreira + Saúde + Família</div>
+            <div style="margin-top:6px;height:6px;background:var(--bg-deep);border-radius:3px;overflow:hidden">
+              <div style="width:3.7%;height:100%;background:linear-gradient(90deg,var(--teal),#00838f);border-radius:3px"></div>
+            </div>
+          </div>
+          <div class="ind-card warn">
+            <div class="ind-header">
+              <span class="ind-label">No Backlog</span>
+              <span class="ind-icon">📦</span>
+            </div>
+            <div class="ind-val yellow">14</div>
+            <div class="ind-desc">Ações planejadas para blocos futuros (Pós-Grad 03–06, LinkedIn, Concurso BACEN…)</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- PLANEJAMENTO DE ROTINA -->
+    <div class="page" id="p-habitos">
+
+      <!-- Topo: título + 3 botões Add -->
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="ptitle"><span>Planejamento</span> de Rotina</div>
+        <div class="plan-top-btns">
+          <button class="btn-plan meta"  onclick="abrirModal('modal-meta')">＋ Add Meta</button>
+          <button class="btn-plan acao"  onclick="abrirModal('modal-acao')">＋ Add Ação</button>
+          <button class="btn-plan tarefa" onclick="abrirModal('modal-tarefa')">＋ Add Tarefa</button>
+        </div>
+      </div>
+
+      <hr class="plan-divider">
+
+      <!-- Esteira de sub-abas -->
+      <div class="plan-tabs">
+        <div class="plan-tab active" onclick="switchPlanTab('definir-acoes', this)">
+          <i class="ti ti-adjustments-horizontal" style="font-size:12px"></i> Definir Ações
+        </div>
+        <div class="plan-tab" onclick="switchPlanTab('editar-blocos', this)">
+          <i class="ti ti-clock-edit" style="font-size:12px"></i> Editar Blocos
+        </div>
+        <div class="plan-tab" onclick="switchPlanTab('definir-tarefas', this)">
+          <i class="ti ti-list-check" style="font-size:12px"></i> Definir Tarefas
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════
+           PAINEL 1 — DEFINIR AÇÕES
+      ════════════════════════════════════════════ -->
+      <div class="plan-panel active" id="plan-definir-acoes">
+
+        <!-- Cabeçalho do bloco -->
+        <div class="card-sm">
+          <div class="clabel" style="margin-bottom:8px">Período do Bloco</div>
+          <div class="form-grid">
+            <div class="fg">
+              <label>Data Inicial</label>
+              <input id="da-data-ini" type="date" oninput="gerarNomeBloco()">
+            </div>
+            <div style="display:flex;gap:6px;align-items:flex-end">
+              <div class="fg" style="flex:1">
+                <label>Duração</label>
+                <input id="da-duracao" type="number" min="1" placeholder="Ex: 5" oninput="gerarNomeBloco()">
+              </div>
+              <div class="fg" style="flex:1">
+                <label>Unidade</label>
+                <select id="da-unidade" onchange="gerarNomeBloco()">
+                  <option value="dias">Dias</option>
+                  <option value="semanas">Semanas</option>
+                  <option value="meses">Meses</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+            <span style="font-size:10px;color:var(--purple-dim)">Nome do Bloco:</span>
+            <span id="da-nome-bloco" style="font-size:12px;font-family:var(--font-mono);color:var(--teal)">—</span>
+          </div>
+        </div>
+
+        <!-- Tabela de ações do bloco (máx 15) -->
+        <div class="card-sm" style="padding-bottom:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div class="clabel">Ações do Bloco <span id="da-count" style="color:var(--purple-dim)">(0/15)</span></div>
+            <button class="btn-add-linha" onclick="adicionarLinhaAcao()">＋ Adicionar Ação</button>
+          </div>
+          <div class="acoes-table-wrap">
+            <table class="acoes-table">
+              <thead>
+                <tr>
+                  <th style="width:24px;text-align:center" title="Marque as ações prioritárias deste bloco">⭐</th>
+                  <th>Ação (Abreviação)</th>
+                  <th style="width:110px">Foco / Registro</th>
+                  <th style="width:70px">Status</th>
+                  <th style="width:28px"></th>
+                </tr>
+              </thead>
+              <tbody id="da-tbody">
+                <tr id="da-empty-row">
+                  <td colspan="5" style="color:var(--purple-dim);text-align:center;padding:14px">
+                    Clique em "＋ Adicionar Ação" para começar
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:10px;color:var(--purple-dim)">⭐ = Ação prioritária neste bloco · máx. 15 ações</span>
+            <div style="display:flex;gap:8px">
+              <button class="btn-mini" onclick="limparAcoes()">↺ Limpar</button>
+              <button class="btn-pink" onclick="salvarDefinirAcoes()">💾 Salvar no Sheets</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════
+           PAINEL 2 — EDITAR BLOCOS
+      ════════════════════════════════════════════ -->
+      <div class="plan-panel" id="plan-editar-blocos">
+
+        <!-- Seleção do dia da semana -->
+        <div class="card-sm">
+          <div class="clabel" style="margin-bottom:8px">Dia da Semana</div>
+          <div class="dias-pills">
+            <div class="dia-pill" onclick="selecionarDia(this,'2ª')">2ª</div>
+            <div class="dia-pill" onclick="selecionarDia(this,'3ª')">3ª</div>
+            <div class="dia-pill" onclick="selecionarDia(this,'4ª')">4ª</div>
+            <div class="dia-pill" onclick="selecionarDia(this,'5ª')">5ª</div>
+            <div class="dia-pill" onclick="selecionarDia(this,'6ª')">6ª</div>
+            <div class="dia-pill" onclick="selecionarDia(this,'Sáb')">Sáb</div>
+            <div class="dia-pill" onclick="selecionarDia(this,'Dom')">Dom</div>
+          </div>
+          <div style="margin-top:8px;font-size:10px;color:var(--purple-dim)">
+            Dia selecionado: <span id="eb-dia-label" style="color:var(--pink-soft)">Nenhum</span>
+          </div>
+        </div>
+
+        <!-- Formulário de horário por ação -->
+        <div class="card-sm">
+          <div class="clabel" style="margin-bottom:8px">Adicionar Horário</div>
+          <div class="form-grid">
+            <div class="fg full">
+              <label>Ação (Abreviação)</label>
+              <select id="eb-acao">
+                <option value="">Selecione a ação...</option>
+                <option>Dores no Corpo</option>
+                <option>Melhorar Exame</option>
+                <option>Concurso</option>
+                <option>Cargo Melhor</option>
+                <option>Estudos TI</option>
+                <option>Hábitos Saudáveis</option>
+                <option>Lazer</option>
+                <option>Afinidade Relação</option>
+                <option>Tarefa - Work</option>
+                <option>Tarefa - Casa</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label>Horário Inicial</label>
+              <input id="eb-hora-ini" type="time" oninput="calcDifBloco()">
+            </div>
+            <div class="fg">
+              <label>Horário Final</label>
+              <input id="eb-hora-fim" type="time" oninput="calcDifBloco()">
+            </div>
+            <div class="fg">
+              <label>Diferença</label>
+              <input id="eb-dif" type="text" readonly placeholder="00:00" style="color:var(--teal);cursor:default">
+            </div>
+            <div class="fg">
+              <label>Nº (ordem)</label>
+              <input id="eb-num" type="number" min="1" placeholder="1">
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:8px;gap:8px">
+            <button class="btn-add-linha" onclick="adicionarHorarioBloco()">＋ Adicionar à tabela</button>
+          </div>
+        </div>
+
+        <!-- Tabela de horários definidos -->
+        <div class="acoes-table-wrap">
+          <table class="acoes-table">
+            <thead>
+              <tr><th>Nº</th><th>Ação</th><th>Dia</th><th>Início</th><th>Fim</th><th>Duração</th><th style="width:28px"></th></tr>
+            </thead>
+            <tbody id="eb-tbody">
+              <tr id="eb-empty-row">
+                <td colspan="7" style="color:var(--purple-dim);text-align:center;padding:14px">Nenhum horário definido ainda</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px">
+          <button class="btn-mini" onclick="limparBlocos()">↺ Limpar</button>
+          <button class="btn-pink" onclick="salvarBlocos()">💾 Salvar no Sheets</button>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════
+           PAINEL 3 — DEFINIR TAREFAS
+      ════════════════════════════════════════════ -->
+      <div class="plan-panel" id="plan-definir-tarefas">
+
+        <!-- Formulário de tarefa -->
+        <div class="card-sm">
+          <div class="clabel" style="margin-bottom:8px">Nova Tarefa</div>
+          <div class="form-grid">
+            <div class="fg full">
+              <label>Ação (Abreviação)</label>
+              <select id="dt-acao" onchange="onDtAcaoChange()">
+                <option value="">Selecione a ação...</option>
+                <option>Dores no Corpo</option>
+                <option>Melhorar Exame</option>
+                <option>Concurso</option>
+                <option>Cargo Melhor</option>
+                <option>Estudos TI</option>
+                <option>Hábitos Saudáveis</option>
+                <option>Lazer</option>
+                <option>Afinidade Relação</option>
+                <option>Tarefa - Work</option>
+                <option>Tarefa - Casa</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label>Tipo de Atividade</label>
+              <select id="dt-tipo">
+                <option value="">Selecione...</option>
+                <option>Videoaula</option>
+                <option>Resumo/Leitura</option>
+                <option>Exercício/Questões</option>
+                <option>Revisão</option>
+                <option>Projeto</option>
+                <option>Treino/Prática</option>
+                <option>Reunião</option>
+                <option>Rotineira</option>
+                <option>A definir/Flexível</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label>Local / Plataforma</label>
+              <input id="dt-local" type="text" placeholder="Ex: Udemy, Notion, Academia…">
+            </div>
+            <div class="fg full">
+              <label>Atividade (descrição da tarefa)</label>
+              <input id="dt-atividade" type="text" placeholder="Ex: Aula 1.1 — Fundamentos de Python">
+            </div>
+            <div class="fg">
+              <label>Prioridade <span id="dt-prioridade-hint" style="color:var(--purple-dim);font-size:10px"></span></label>
+              <input id="dt-prioridade" type="number" min="1" max="99" placeholder="Ex: 1">
+            </div>
+            <div class="fg">
+              <label>Dias para Concluir</label>
+              <input id="dt-dias" type="number" min="1" placeholder="Ex: 3">
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+            <label class="chk" style="font-size:11px">
+              <input type="checkbox" class="vinc-check" id="dt-vinculada" onchange="toggleVinculo(this)">
+              Vinculada a outra tarefa
+            </label>
+            <button class="btn-add-linha" onclick="adicionarTarefa()">＋ Adicionar à tabela</button>
+          </div>
+        </div>
+
+        <!-- Tabela de tarefas agrupada por ação -->
+        <div class="acoes-table-wrap">
+          <table class="acoes-table">
+            <thead>
+              <tr>
+                <th style="width:32px;text-align:center">P</th>
+                <th>Ação</th>
+                <th>Tipo</th>
+                <th>Atividade</th>
+                <th style="width:60px">Dias</th>
+                <th>Vinculada</th>
+                <th style="width:28px"></th>
+              </tr>
+            </thead>
+            <tbody id="dt-tbody">
+              <tr id="dt-empty-row">
+                <td colspan="7" style="color:var(--purple-dim);text-align:center;padding:14px">Nenhuma tarefa definida ainda</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:10px;color:var(--purple-dim)">P = Prioridade · editável diretamente na tabela · única por ação</span>
+          <div style="display:flex;gap:8px">
+            <button class="btn-mini" onclick="limparTarefas()">↺ Limpar</button>
+            <button class="btn-pink" onclick="salvarTarefas()">💾 Salvar no Sheets</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         MODAIS FLUTUANTES
+    ════════════════════════════════════════════ -->
+
+    <!-- Modal Add Meta -->
+    <div class="modal-overlay" id="modal-meta" onclick="fecharModalClick(event,'modal-meta')">
+      <div class="modal-box">
+        <div class="modal-header">
+          <span class="modal-title"><span>Add</span> Meta → aba META</span>
+          <button class="modal-close" onclick="fecharModal('modal-meta')">✕</button>
+        </div>
+        <div class="modal-form-grid">
+          <div class="fg full"><label>Meta (objetivo principal)</label><input id="mm-meta" type="text" placeholder="Ex: Passar no Concurso Público"></div>
+          <div class="fg"><label>Categoria</label>
+            <select id="mm-cat">
+              <option>Saúde/Bem-estar</option><option>Carreira Profissional</option><option>Família/Relacionamentos</option><option>Rotinas</option><option>Finanças</option>
+            </select>
+          </div>
+          <div class="fg"><label>Abreviação</label><input id="mm-abrev" type="text" placeholder="Ex: Concurso"></div>
+          <div class="fg"><label>Data Cadastro</label><input id="mm-data" type="date"></div>
+          <div class="fg"><label>Status</label>
+            <select id="mm-status"><option>Ativo</option><option>Próximo</option><option>Reavaliar</option><option>Permanente</option><option>Backlog</option></select>
+          </div>
+          <div class="fg full"><label>Objetivo explicativo</label><textarea id="mm-obj" style="background:var(--bg-deep);border:0.5px solid var(--border);border-radius:6px;color:var(--fg);font-size:12px;padding:6px 9px;width:100%;min-height:52px;resize:none;font-family:var(--font-sans)" placeholder="Descreva o que essa meta representa…"></textarea></div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px">
+          <button class="btn-mini" onclick="fecharModal('modal-meta')">Cancelar</button>
+          <button class="btn-pink" onclick="salvarMeta()">💾 Salvar no Sheets</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Add Ação -->
+    <div class="modal-overlay" id="modal-acao" onclick="fecharModalClick(event,'modal-acao')">
+      <div class="modal-box">
+        <div class="modal-header">
+          <span class="modal-title"><span>Add</span> Ação → aba AÇÕES</span>
+          <button class="modal-close" onclick="fecharModal('modal-acao')">✕</button>
+        </div>
+        <div class="modal-form-grid">
+          <div class="fg full"><label>Meta vinculada (ID_Meta)</label><input id="ma-idmeta" type="text" placeholder="Ex: Fortalecer o joelho, lombar e mãos._01"></div>
+          <div class="fg full"><label>Registro / Nome da Ação</label><input id="ma-registro" type="text" placeholder="Ex: [Dores no Corpo] Musculação - A - Frontal [3ªS.]"></div>
+          <div class="fg"><label>Categoria</label>
+            <select id="ma-cat">
+              <option>Saúde/Bem-estar</option><option>Carreira Profissional</option><option>Família/Relacionamentos</option><option>Rotinas</option>
+            </select>
+          </div>
+          <div class="fg"><label>Abreviação</label><input id="ma-abrev" type="text" placeholder="Ex: Dores no Corpo"></div>
+          <div class="fg"><label>Foco</label><input id="ma-foco" type="text" placeholder="Ex: A - Frontal [3ªS.]"></div>
+          <div class="fg"><label>Tipo da Ação</label>
+            <select id="ma-tipo"><option>A definir/Flexível</option><option>Rotineira</option><option>Prazo Definido</option><option>Perdeu Importância</option></select>
+          </div>
+          <div class="fg"><label>Prazo Inicial</label><input id="ma-praz-ini" type="date"></div>
+          <div class="fg"><label>Prazo Final</label><input id="ma-praz-fim" type="date"></div>
+          <div class="fg"><label>Status</label>
+            <select id="ma-status"><option>Reavaliar</option><option>Próximo</option><option>Ativo</option><option>Permanente</option><option>Backlog</option><option>Cancelado</option><option>Concluído</option></select>
+          </div>
+          <div class="fg"><label>IPC?</label>
+            <select id="ma-ipc"><option value="FALSE">Não</option><option value="TRUE">Sim</option></select>
+          </div>
+          <div class="fg full"><label>Objetivo explicativo</label><textarea id="ma-obj" style="background:var(--bg-deep);border:0.5px solid var(--border);border-radius:6px;color:var(--fg);font-size:12px;padding:6px 9px;width:100%;min-height:48px;resize:none;font-family:var(--font-sans)" placeholder="Descreva o que esta ação envolve…"></textarea></div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px">
+          <button class="btn-mini" onclick="fecharModal('modal-acao')">Cancelar</button>
+          <button class="btn-pink" onclick="salvarAcao()">💾 Salvar no Sheets</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Add Tarefa -->
+    <div class="modal-overlay" id="modal-tarefa" onclick="fecharModalClick(event,'modal-tarefa')">
+      <div class="modal-box">
+        <div class="modal-header">
+          <span class="modal-title"><span>Add</span> Tarefa → aba TAREFAS</span>
+          <button class="modal-close" onclick="fecharModal('modal-tarefa')">✕</button>
+        </div>
+        <div class="modal-form-grid">
+          <div class="fg full"><label>Ação vinculada (Abreviação)</label>
+            <select id="mt-acao">
+              <option value="">Selecione...</option>
+              <option>Dores no Corpo</option><option>Melhorar Exame</option><option>Concurso</option>
+              <option>Cargo Melhor</option><option>Estudos TI</option><option>Hábitos Saudáveis</option>
+              <option>Lazer</option><option>Afinidade Relação</option><option>Tarefa - Work</option><option>Tarefa - Casa</option>
+            </select>
+          </div>
+          <div class="fg full"><label>Atividade (descrição)</label><input id="mt-ativ" type="text" placeholder="Ex: Aula 1.1 — Fundamentos de Python"></div>
+          <div class="fg"><label>Tipo</label>
+            <select id="mt-tipo"><option>Videoaula</option><option>Resumo/Leitura</option><option>Exercício/Questões</option><option>Revisão</option><option>Projeto</option><option>Treino</option><option>Reunião</option><option>Rotineira</option></select>
+          </div>
+          <div class="fg"><label>Local / Plataforma</label><input id="mt-local" type="text" placeholder="Ex: Udemy"></div>
+          <div class="fg"><label>Importância (CRVG)</label>
+            <select id="mt-crvg"><option>Valor</option><option>Geral</option></select>
+          </div>
+          <div class="fg"><label>Ativo no próximo ciclo?</label>
+            <select id="mt-ativo"><option value="TRUE">Sim</option><option value="FALSE">Não</option></select>
+          </div>
+          <div class="fg"><label>Data de Início</label><input id="mt-inicio" type="date"></div>
+          <div class="fg"><label>Dias para Concluir</label><input id="mt-dias" type="number" min="1" placeholder="3"></div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px">
+          <button class="btn-mini" onclick="fecharModal('modal-tarefa')">Cancelar</button>
+          <button class="btn-pink" onclick="salvarTarefaModal()">💾 Salvar no Sheets</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de vínculo entre tarefas -->
+    <div class="modal-overlay" id="modal-vinculo" onclick="fecharModalClick(event,'modal-vinculo')">
+      <div class="modal-box">
+        <div class="modal-header">
+          <span class="modal-title">Tarefas <span>Vinculadas</span></span>
+          <button class="modal-close" onclick="fecharModal('modal-vinculo')">✕</button>
+        </div>
+        <div style="font-size:11px;color:var(--purple-text);margin-bottom:8px">Selecione uma ou mais tarefas desta lista:</div>
+        <div id="vinculo-lista" style="display:flex;flex-direction:column;gap:5px;max-height:240px;overflow-y:auto"></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
+          <button class="btn-mini" onclick="fecharModal('modal-vinculo')">Cancelar</button>
+          <button class="btn-teal" onclick="confirmarVinculo()">Confirmar vínculos</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROTINA ATUAL -->
+    <div class="page" id="p-ciclo">
+
+      <!-- Cabeçalho -->
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="ptitle"><span>Rotina</span> Atual</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span class="sub-tag" id="ra-bloco-label">Bloco_13.07.2026</span>
+          <button class="btn-mini" onclick="gerarRotina()">⟳ Gerar da Definição</button>
+          <button class="btn-pink" style="font-size:11px;padding:5px 10px" onclick="salvarRotina()">💾 Salvar no Sheets</button>
+        </div>
+      </div>
+
+      <!-- Seletor de dia para visualização do dia atual -->
+      <div class="card-sm" style="padding:10px 12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <div style="font-size:10px;color:var(--purple-dim)">Visualizar dia:</div>
+          <div class="dias-pills" id="ra-dias-pills">
+            <div class="dia-pill active" onclick="filtrarRotinaDia(this,'Todos')">Todos</div>
+            <div class="dia-pill" onclick="filtrarRotinaDia(this,'2ª')">2ª</div>
+            <div class="dia-pill" onclick="filtrarRotinaDia(this,'3ª')">3ª</div>
+            <div class="dia-pill" onclick="filtrarRotinaDia(this,'4ª')">4ª</div>
+            <div class="dia-pill" onclick="filtrarRotinaDia(this,'5ª')">5ª</div>
+            <div class="dia-pill" onclick="filtrarRotinaDia(this,'6ª')">6ª</div>
+            <div class="dia-pill" onclick="filtrarRotinaDia(this,'Sáb')">Sáb</div>
+            <div class="dia-pill" onclick="filtrarRotinaDia(this,'Dom')">Dom</div>
+          </div>
+          <div style="font-size:10px;color:var(--purple-dim)">
+            <span id="ra-total-label">0 atividades</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabela principal da Rotina Atual -->
+      <div class="acoes-table-wrap">
+        <table class="acoes-table" id="ra-table">
+          <thead>
+            <tr>
+              <th style="width:32px;text-align:center">P</th>
+              <th style="width:40px">Dia</th>
+              <th style="width:70px">Início</th>
+              <th style="width:70px">Fim</th>
+              <th>Ação</th>
+              <th>Tarefa</th>
+              <th style="width:70px">Tipo</th>
+              <th style="width:28px;text-align:center">✓</th>
+              <th style="width:28px"></th>
+            </tr>
+          </thead>
+          <tbody id="ra-tbody">
+            <tr>
+              <td colspan="9" style="color:var(--purple-dim);text-align:center;padding:20px;font-size:12px">
+                Clique em <strong style="color:var(--pink-soft)">⟳ Gerar da Definição</strong> para montar a rotina a partir dos blocos e tarefas definidos.<br>
+                <span style="font-size:10px;opacity:.7">Ou adicione manualmente uma linha abaixo.</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Rodapé com legenda e add manual -->
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <span style="font-size:10px;color:var(--purple-dim)">P = Prioridade (editável — sincroniza com Definir Tarefas)</span>
+          <span style="font-size:10px;color:var(--purple-dim)">· ✓ = Concluído hoje</span>
+          <span style="font-size:10px;color:var(--purple-dim)">· ✎ = Edição inline</span>
+        </div>
+        <button class="btn-add-linha" onclick="adicionarLinhaRotina()">＋ Adicionar manualmente</button>
+      </div>
+
+      <!-- Mini gantt semanal gerado da rotina -->
+      <div class="card-sm" id="ra-gantt-mini" style="display:none">
+        <div class="clabel" style="margin-bottom:8px">Visão Semanal — Ciclo de Rotina <span style="color:var(--purple-dim);font-size:9px">(alimenta o Gantt do Dashboard)</span></div>
+        <div id="ra-gantt-grid" style="display:flex;flex-direction:column;gap:4px"></div>
+      </div>
+
+    </div>
+
+    <!-- HISTÓRICO -->
+    <div class="page" id="p-metas">
+
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="ptitle"><span>Histórico</span> de Blocos</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <select id="hist-filtro" onchange="filtrarHistorico()" style="background:var(--bg-card);border:0.5px solid var(--border);border-radius:6px;color:var(--purple-text);font-size:11px;padding:4px 8px">
+            <option value="todos">Todos os blocos</option>
+            <option value="completo">≥ 80% concluídos</option>
+            <option value="parcial">40–79%</option>
+            <option value="baixo">< 40%</option>
+          </select>
+          <button class="btn-mini" onclick="registrarBlocoAtual()">＋ Registrar bloco atual</button>
+        </div>
+      </div>
+
+      <!-- Indicadores resumidos no topo -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+        <div class="card" style="background:var(--bg-card)">
+          <div class="clabel">Blocos Registrados</div>
+          <div class="cval" id="hist-total-blocos">0</div>
+          <div class="csub">no histórico</div>
+        </div>
+        <div class="card" style="background:var(--bg-card)">
+          <div class="clabel">Tarefas Totais</div>
+          <div class="cval teal" id="hist-total-tarefas">0</div>
+          <div class="csub">em todos os blocos</div>
+        </div>
+        <div class="card" style="background:var(--bg-card)">
+          <div class="clabel">Tarefas Concluídas</div>
+          <div class="cval" id="hist-total-concluidas" style="color:var(--pink)">0</div>
+          <div class="csub" id="hist-pct-geral">0% de aproveitamento</div>
+        </div>
+        <div class="card" style="background:var(--bg-card)">
+          <div class="clabel">Melhor Bloco</div>
+          <div class="cval white" id="hist-melhor-bloco" style="font-size:11px">—</div>
+          <div class="csub" id="hist-melhor-pct">—</div>
+        </div>
+      </div>
+
+      <!-- Lista de blocos -->
+      <div id="hist-lista" style="display:flex;flex-direction:column;gap:8px">
+        <div style="color:var(--purple-dim);font-size:12px;text-align:center;padding:20px">
+          Nenhum bloco registrado ainda. Clique em <strong style="color:var(--pink-soft)">＋ Registrar bloco atual</strong> ao finalizar um ciclo.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TIMER / FOCO -->
+    <div class="page" id="p-timer">
+      <div class="ph"><div class="ptitle"><i class="ti ti-clock" style="color:var(--teal)"></i> <span>Timer</span> / Foco</div></div>
+      <div class="card-sm" style="text-align:center">
+        <div class="clabel" style="text-align:center">Pomodoro</div>
+        <div class="timer-display" id="timer-display">25:00</div>
+        <div class="timer-controls">
+          <button class="btn-teal" id="btn-timer" onclick="toggleTimer()">▶ Iniciar</button>
+          <button class="btn-mini" onclick="resetTimer()">↺ Reiniciar</button>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px;justify-content:center">
+          <button class="btn-mini" onclick="setTimer(25)">25 min</button>
+          <button class="btn-mini" onclick="setTimer(45)">45 min</button>
+          <button class="btn-mini" onclick="setTimer(5)">5 min pausa</button>
+        </div>
+      </div>
+      <div class="card-sm">
+        <div class="clabel" style="margin-bottom:8px">Sessões de Hoje</div>
+        <div id="sessoes-lista">
+          <div style="color:var(--purple-dim);font-size:12px">Nenhuma sessão registrada hoje.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTAS RÁPIDAS -->
+    <div class="page" id="p-notas">
+      <div class="ph"><div class="ptitle"><i class="ti ti-notes" style="color:var(--pink)"></i> <span>Notas</span> Rápidas</div>
+        <button class="btn-mini" onclick="salvarNota()">💾 Salvar</button>
+      </div>
+      <div class="card-sm" style="display:flex;flex-direction:column;gap:8px">
+        <div class="fg"><label>Título</label><input id="nota-titulo" type="text" placeholder="Ex: Ideias para o projeto..."></div>
+        <div class="fg full"><label>Conteúdo</label><textarea id="nota-conteudo" class="nota-area" placeholder="Escreva aqui sua nota..."></textarea></div>
+      </div>
+      <div class="card-sm">
+        <div class="clabel" style="margin-bottom:8px">Notas Salvas</div>
+        <div id="notas-lista">
+          <div style="color:var(--purple-dim);font-size:12px">Nenhuma nota salva.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAREFAS -->
+    <div class="page" id="p-tarefas">
+      <div class="ph"><div class="ptitle"><span>Tarefas</span></div>
+        <button class="btn-mini" onclick="abrirModalTarefa()"><i class="ti ti-plus"></i> Nova Tarefa</button>
+      </div>
+      <div id="form-tarefa" style="display:none" class="card-sm">
+        <div class="form-grid">
+          <div class="fg full"><label>Atividade</label><input id="t-nome" type="text" placeholder="Ex: Revisar relatório mensal"></div>
+          <div class="fg"><label>Local / Plataforma</label><input id="t-local" type="text" placeholder="Ex: Notion"></div>
+          <div class="fg"><label>Tipo</label>
+            <select id="t-tipo"><option>Estudo</option><option>Trabalho</option><option>Pessoal</option><option>Revisão</option></select>
+          </div>
+          <div class="btn-row">
+            <button class="btn-mini" onclick="fecharModalTarefa()">Cancelar</button>
+            <button class="btn-pink" onclick="adicionarTarefa()">Salvar Tarefa</button>
+          </div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Atividade</th><th>Local</th><th>Tipo</th><th>Status</th><th></th></tr></thead>
+          <tbody id="tarefas-tbody">
+            <tr><td colspan="5" style="color:var(--purple-dim);text-align:center;padding:16px">Nenhuma tarefa cadastrada</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PLANO DE ESTUDOS -->
+    <div class="page" id="p-estudos">
+      <div class="ph"><div class="ptitle"><span>Plano de Estudos</span></div></div>
+      <div class="card-sm">
+        <div class="form-grid">
+          <div class="fg"><label>Foco / Matéria</label><input type="text" placeholder="Ex: Ciência de Dados"></div>
+          <div class="fg"><label>Tipo de Estudo</label>
+            <select><option>Videoaula</option><option>Resumo</option><option>Exercício</option><option>Revisão</option><option>Leitura</option></select>
+          </div>
+          <div class="fg"><label>Eixo / Disciplina</label><input type="text" placeholder="Ex: Machine Learning — Módulo 2"></div>
+          <div class="fg"><label>Data</label><input type="date"></div>
+          <div class="fg"><label>Início</label><input type="time"></div>
+          <div class="fg"><label>Fim</label><input type="time"></div>
+          <div class="fg"><label>Plataforma</label><input type="text" placeholder="Ex: Udemy, Gran Cursos..."></div>
+          <div class="fg"><label>Observação</label><input type="text" placeholder="Ex: Aulas 1.1 a 1.4"></div>
+          <div class="btn-row">
+            <label class="chk"><input type="checkbox"> Marcar como concluído</label>
+            <button class="btn-teal">Salvar Sessão</button>
+          </div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Matéria</th><th>Tipo</th><th>Data</th><th>Duração</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Ciência de Dados — Intro IA</td><td>Videoaula</td><td>10/07/26</td><td>0h 50m</td><td><span class="badge badge-ok">Concluído</span></td></tr>
+            <tr><td>Machine Learning — Módulo 1</td><td>Exercício</td><td>09/07/26</td><td>1h 10m</td><td><span class="badge badge-ok">Concluído</span></td></tr>
+            <tr><td>Redes — LAN e WAN</td><td>Revisão</td><td>—</td><td>—</td><td><span class="badge badge-ab">Pendente</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+// ── STATE ──────────────────────────────────────────────
+let habitos = [];
+let metas = [];
+let tarefas = [];
+let notas = [];
+let sessoes = [];
+let timerInterval = null;
+let timerRunning = false;
+let timerSeconds = 25 * 60;
+let timerTotal = 25 * 60;
+let timerSessaoLabel = '25 min';
+
+// ── NAVIGATION ──────────────────────────────────────────
+function show(page, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav').forEach(n => n.classList.remove('active'));
+  document.getElementById('p-' + page).classList.add('active');
+  if (el) el.classList.add('active');
+  if (page === 'dashboard') atualizarDashboard();
+}
+
+// ── DATE ───────────────────────────────────────────────
+function setupDate() {
+  const d = new Date();
+  const dias = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  document.getElementById('dash-data').textContent = `${d.getDate()}/${meses[d.getMonth()]}/${d.getFullYear()}`;
+  document.getElementById('dash-diaSemana').textContent = dias[d.getDay()];
+  const q = Math.ceil((d.getMonth() + 1) / 3);
+  document.getElementById('trimestre-label').textContent = `${q}º Trimestre`;
+  const mesesCiclo = [['Jan','Mar'],['Abr','Jun'],['Jul','Set'],['Out','Dez']];
+  document.getElementById('ciclo-label').textContent = `${mesesCiclo[q-1][0]} – ${mesesCiclo[q-1][1]} ${d.getFullYear()}`;
+}
+
+// ── DASHBOARD ──────────────────────────────────────────
+function atualizarDashboard() {
+  // mantém o dashboard estático por ora; dados virão do Sheets
+}
+
+function switchView(view) {
+  document.getElementById('panel-gantt').classList.toggle('active', view === 'gantt');
+  document.getElementById('panel-indicadores').classList.toggle('active', view === 'indicadores');
+  document.getElementById('btn-gantt').classList.toggle('active', view === 'gantt');
+  document.getElementById('btn-indicadores').classList.toggle('active', view === 'indicadores');
+  if (view === 'indicadores') renderSparklines();
+}
+
+function onAtivChange(sel) {
+  const v = sel.value;
+  sel.className = 'ativ-select';
+  if (v === 'Feito completamente') sel.classList.add('feito');
+  else if (v === 'Feito parcialmente') sel.classList.add('parcial');
+  else if (v === 'Não feito') sel.classList.add('nao-feito');
+  else if (v === 'Adiado') sel.classList.add('adiado');
+}
+
+function toggleAtiv(itemEl) {
+  const drawer = itemEl.nextElementSibling;
+  const isOpen = drawer.classList.contains('open');
+  // Fecha todos os drawers da mesma coluna
+  itemEl.closest('.ativ-col').querySelectorAll('.ativ-drawer').forEach(d => d.classList.remove('open'));
+  itemEl.closest('.ativ-col').querySelectorAll('.ativ-item').forEach(i => i.classList.remove('open'));
+  // Abre o clicado (se estava fechado)
+  if (!isOpen) {
+    drawer.classList.add('open');
+    itemEl.classList.add('open');
+  }
+}
+
+function abrirToggl(atividade) {
+  // Hook para integração Toggl — quando servidor local ativo, inicia timer
+  const url = `https://toggl.com/app/timer`;
+  window.open(url, '_blank');
+  // Futura chamada: POST /api/toggl/start { description: atividade }
+}
+
+function renderSparklines() {
+  const dados = {
+    'spark-conclusao': [60,70,65,80,74,78,74],
+    'spark-pendentes': [4,3,5,2,3,2,2],
+    'spark-streak':    [1,2,3,4,5,6,7],
+    'spark-tempo':     [3,4,5,3,6,5,5],
+    'spark-metas':     [3,3,2,3,2,2,2],
+  };
+  const colors = {
+    'spark-conclusao': '#26a69a',
+    'spark-pendentes': '#ff9800',
+    'spark-streak':    '#e91e8c',
+    'spark-tempo':     '#42a5f5',
+    'spark-metas':     '#ff9800',
+  };
+  Object.entries(dados).forEach(([id, vals]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const max = Math.max(...vals);
+    el.innerHTML = vals.map((v, i) => {
+      const h = Math.max(4, Math.round((v / max) * 22));
+      const isToday = i === vals.length - 1;
+      return `<div class="ind-spark-bar" style="height:${h}px;background:${isToday ? colors[id] : 'rgba(255,255,255,0.15)'}"></div>`;
+    }).join('');
+  });
+}
+
+// ── PLANEJAMENTO DE ROTINA ─────────────────────────────
+let acoesBloco    = [];  // Definir Ações
+let horariosBloco = [];  // Editar Blocos
+let tarefasBloco  = [];  // Definir Tarefas
+let tarefaVinculoIdx = null; // índice da tarefa que está recebendo vínculo
+let diaSelecionado = '';
+
+const ACOES_DISPONIVEIS = [
+  { abrev:'Dores no Corpo',    foco:'Musculação A/B · Joelho/Lombar',          registro:'[Dores no Corpo] Musculação', status:'Reavaliar' },
+  { abrev:'Melhorar Exame',    foco:'Cross Fit · Futevôlei · Natação · Pilates', registro:'[Melhorar Exame] Novidade/Cardio', status:'Próximo' },
+  { abrev:'Concurso',          foco:'Resumo/Leitura · Questões (Câm. Dep)',     registro:'[Carreira Profissional] Concurso Público', status:'Ativo' },
+  { abrev:'Cargo Melhor',      foco:'Python · DevOps · Agente PBI · LinkedIn',  registro:'[Cargo Melhor] Cursos / Projetos', status:'Reavaliar' },
+  { abrev:'Estudos TI',        foco:'Pós-Graduação · Ciência de Dados',         registro:'[Carreira Profissional] Pós-Graduação', status:'Reavaliar' },
+  { abrev:'Hábitos Saudáveis', foco:'Higiene do Sono · Rotina de Ativação',     registro:'[Hábitos Saudáveis] Rotina/Higiene/Jejum', status:'Permanente' },
+  { abrev:'Lazer',             foco:'Roguelike · Co-op com os Parças',          registro:'[Rotinas] Jogos - Roguelike / Co-op', status:'Permanente' },
+  { abrev:'Afinidade Relação', foco:'Tempo Útil · Juntinho · Compromissos',     registro:'[Afinidade Relação] Tempo Útil', status:'Permanente' },
+  { abrev:'Tarefa - Work',     foco:'Daily · Demandas · Reuniões',              registro:'[Tarefa - Work] Demandas Diárias', status:'Permanente' },
+  { abrev:'Tarefa - Casa',     foco:'Organização · Manutenção · Planejamento',  registro:'[Rotinas] Organização/Manutenção', status:'Permanente' },
+];
+
+// Sub-abas da página Planejamento
+function switchPlanTab(panel, el) {
+  document.querySelectorAll('.plan-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.plan-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('plan-' + panel).classList.add('active');
+  el.classList.add('active');
+}
+
+// ── MODAIS ─────────────────────────────────────────────
+function abrirModal(id) { document.getElementById(id).classList.add('open'); }
+function fecharModal(id) { document.getElementById(id).classList.remove('open'); }
+function fecharModalClick(e, id) { if (e.target === e.currentTarget) fecharModal(id); }
+
+// ── DEFINIR AÇÕES ───────────────────────────────────────
+function gerarNomeBloco() {
+  const dataIni  = document.getElementById('da-data-ini').value;
+  const duracao  = document.getElementById('da-duracao').value;
+  const unidade  = document.getElementById('da-unidade').value;
+  const el = document.getElementById('da-nome-bloco');
+  if (!dataIni) { el.textContent = '—'; return; }
+  const d = new Date(dataIni + 'T00:00:00');
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const aaaa = d.getFullYear();
+  const nome = `Bloco_${dd}.${mm}.${aaaa}`;
+  el.textContent = nome + (duracao ? ` · ${duracao} ${unidade}` : '');
+  el.style.cssText = 'font-size:12px;font-family:var(--font-mono);color:var(--pink-soft);background:rgba(233,30,140,.1);padding:2px 8px;border-radius:4px';
+}
+
+function adicionarLinhaAcao() {
+  if (acoesBloco.length >= 15) { mostrarFeedback('⚠️ Máximo de 15 ações atingido.'); return; }
+  const idx = acoesBloco.length;
+  acoesBloco.push({ abrev:'', prioritaria: false });
+  renderAcoesBloco();
+}
+
+function renderAcoesBloco() {
+  const tbody = document.getElementById('da-tbody');
+  document.getElementById('da-empty-row')?.remove();
+  document.getElementById('da-count').textContent = `(${acoesBloco.length}/15)`;
+  if (!acoesBloco.length) {
+    tbody.innerHTML = '<tr id="da-empty-row"><td colspan="5" style="color:var(--purple-dim);text-align:center;padding:14px">Clique em "＋ Adicionar Ação" para começar</td></tr>';
+    return;
+  }
+  const badge = { 'Reavaliar':'badge-fl','Próximo':'badge-re','Ativo':'badge-ok','Permanente':'badge-ok','Backlog':'badge-ab' };
+  tbody.innerHTML = acoesBloco.map((a,i) => {
+    const opcoes = ACOES_DISPONIVEIS.map(o =>
+      `<option value="${o.abrev}" ${a.abrev===o.abrev?'selected':''}>${o.abrev}</option>`
+    ).join('');
+    const info = ACOES_DISPONIVEIS.find(o => o.abrev === a.abrev);
+    return `<tr>
+      <td class="prioridade-cell"><input type="checkbox" class="vinc-check" ${a.prioritaria?'checked':''} onchange="togglePrioridade(${i},this.checked)" title="Prioritária"></td>
+      <td><select class="acoes-row-select" onchange="onAcaoSelect(${i},this.value)"><option value="">Selecione...</option>${opcoes}</select></td>
+      <td style="font-size:10px;color:var(--purple-text);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${info ? info.foco : ''}">${info ? info.foco : '—'}</td>
+      <td>${info ? `<span class="badge ${badge[info.status]||'badge-ab'}">${info.status}</span>` : '—'}</td>
+      <td><button class="btn-rm" onclick="removerAcao(${i})">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function onAcaoSelect(idx, val) {
+  acoesBloco[idx].abrev = val;
+  renderAcoesBloco();
+}
+function togglePrioridade(idx, val) { acoesBloco[idx].prioritaria = val; }
+function removerAcao(idx) { acoesBloco.splice(idx, 1); renderAcoesBloco(); }
+function limparAcoes() { acoesBloco = []; renderAcoesBloco(); }
+function salvarDefinirAcoes() {
+  if (!acoesBloco.length) { mostrarFeedback('⚠️ Adicione pelo menos uma ação.'); return; }
+  mostrarFeedback('✅ Ações do bloco salvas! Conecte ao servidor para sincronizar com o Sheets.');
+  // Hook: fetch('/api/sheets/bloco-acoes', { method:'POST', body: JSON.stringify(acoesBloco) })
+}
+
+// ── EDITAR BLOCOS ───────────────────────────────────────
+function selecionarDia(el, dia) {
+  document.querySelectorAll('.dia-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  diaSelecionado = dia;
+  document.getElementById('eb-dia-label').textContent = dia;
+}
+
+function calcDifBloco() {
+  const ini = document.getElementById('eb-hora-ini').value;
+  const fim = document.getElementById('eb-hora-fim').value;
+  if (!ini || !fim) return;
+  const [hI,mI] = ini.split(':').map(Number);
+  const [hF,mF] = fim.split(':').map(Number);
+  let diff = (hF*60+mF)-(hI*60+mI);
+  if (diff < 0) diff += 1440;
+  document.getElementById('eb-dif').value =
+    `${String(Math.floor(diff/60)).padStart(2,'0')}:${String(diff%60).padStart(2,'0')}`;
+}
+
+function adicionarHorarioBloco() {
+  const acao = document.getElementById('eb-acao').value;
+  const ini  = document.getElementById('eb-hora-ini').value;
+  const fim  = document.getElementById('eb-hora-fim').value;
+  const dif  = document.getElementById('eb-dif').value;
+  const num  = document.getElementById('eb-num').value;
+  if (!acao || !ini || !fim || !diaSelecionado) {
+    mostrarFeedback('⚠️ Preencha: Ação, Dia da Semana e Horários.');
+    return;
+  }
+  horariosBloco.push({ num: num || horariosBloco.length+1, acao, dia: diaSelecionado, ini, fim, dif });
+  horariosBloco.sort((a,b) => a.ini.localeCompare(b.ini));
+  renderHorariosBloco();
+  document.getElementById('eb-acao').value = '';
+  document.getElementById('eb-hora-ini').value = '';
+  document.getElementById('eb-hora-fim').value = '';
+  document.getElementById('eb-dif').value = '';
+  document.getElementById('eb-num').value = '';
+}
+
+function renderHorariosBloco() {
+  const tbody = document.getElementById('eb-tbody');
+  if (!horariosBloco.length) {
+    tbody.innerHTML = '<tr id="eb-empty-row"><td colspan="7" style="color:var(--purple-dim);text-align:center;padding:14px">Nenhum horário definido ainda</td></tr>';
+    return;
+  }
+  tbody.innerHTML = horariosBloco.map((h,i) => `
+    <tr>
+      <td style="color:var(--purple-dim);font-family:var(--font-mono)">${h.num}</td>
+      <td style="font-size:11px">${h.acao}</td>
+      <td><span style="background:rgba(74,32,128,.3);border-radius:3px;padding:1px 6px;font-size:10px;color:var(--purple-text)">${h.dia}</span></td>
+      <td><span class="hora-pill">${h.ini}</span></td>
+      <td><span class="hora-pill">${h.fim}</span></td>
+      <td style="font-family:var(--font-mono);font-size:10px;color:var(--purple-dim)">${h.dif}</td>
+      <td><button class="btn-rm" onclick="removerHorario(${i})">✕</button></td>
+    </tr>
+  `).join('');
+}
+
+function removerHorario(idx) { horariosBloco.splice(idx,1); renderHorariosBloco(); }
+function limparBlocos() { horariosBloco = []; renderHorariosBloco(); }
+function salvarBlocos() {
+  if (!horariosBloco.length) { mostrarFeedback('⚠️ Adicione pelo menos um horário.'); return; }
+  mostrarFeedback('✅ Blocos de horário salvos! Conecte ao servidor para sincronizar com o Sheets.');
+}
+
+// ── DEFINIR TAREFAS ─────────────────────────────────────
+function toggleVinculo(chk) {
+  if (chk.checked && tarefasBloco.length === 0) {
+    mostrarFeedback('⚠️ Adicione pelo menos uma tarefa antes de vincular.');
+    chk.checked = false;
+  }
+}
+
+function onDtAcaoChange() {
+  const acao = document.getElementById('dt-acao').value;
+  const hint = document.getElementById('dt-prioridade-hint');
+  if (!acao) { hint.textContent = ''; return; }
+  const usadas = tarefasBloco.filter(t => t.acao === acao).map(t => t.prioridade).sort((a,b)=>a-b);
+  hint.textContent = usadas.length ? `(em uso: ${usadas.join(', ')})` : '(nenhuma em uso)';
+}
+
+function adicionarTarefa() {
+  const acao  = document.getElementById('dt-acao').value;
+  const tipo  = document.getElementById('dt-tipo').value;
+  const local = document.getElementById('dt-local').value;
+  const ativ  = document.getElementById('dt-atividade').value.trim();
+  const prio  = parseInt(document.getElementById('dt-prioridade').value);
+  const dias  = parseInt(document.getElementById('dt-dias').value) || 1;
+  const vinc  = document.getElementById('dt-vinculada').checked;
+
+  if (!acao || !ativ) { mostrarFeedback('⚠️ Preencha: Ação e Atividade.'); return; }
+  if (!prio || prio < 1) { mostrarFeedback('⚠️ Defina uma Prioridade válida (≥ 1).'); return; }
+
+  // Validar unicidade de prioridade dentro da mesma ação
+  const conflito = tarefasBloco.find(t => t.acao === acao && t.prioridade === prio);
+  if (conflito) {
+    mostrarFeedback(`⚠️ "${acao}" já tem uma tarefa com prioridade ${prio}: "${conflito.ativ}"`);
+    return;
+  }
+
+  const nova = { id: tarefasBloco.length, acao, tipo, local, ativ, prioridade: prio, dias, vinculadas: [] };
+  tarefasBloco.push(nova);
+  // Ordenar por ação e depois por prioridade
+  tarefasBloco.sort((a,b) => a.acao.localeCompare(b.acao) || a.prioridade - b.prioridade);
+  renderTarefasBloco();
+  sincronizarRotina();
+
+  // Se marcou vínculo, abre modal
+  if (vinc && tarefasBloco.length > 1) {
+    tarefaVinculoIdx = tarefasBloco.findIndex(t => t.id === nova.id);
+    abrirModalVinculo();
+  }
+
+  document.getElementById('dt-acao').value = '';
+  document.getElementById('dt-tipo').selectedIndex = 0;
+  document.getElementById('dt-local').value = '';
+  document.getElementById('dt-atividade').value = '';
+  document.getElementById('dt-prioridade').value = '';
+  document.getElementById('dt-dias').value = '';
+  document.getElementById('dt-vinculada').checked = false;
+  document.getElementById('dt-prioridade-hint').textContent = '';
+}
+
+function abrirModalVinculo() {
+  const lista = document.getElementById('vinculo-lista');
+  lista.innerHTML = tarefasBloco
+    .filter((_,i) => i !== tarefaVinculoIdx)
+    .map(t => `
+      <label style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:11px;color:var(--fg);cursor:pointer">
+        <input type="checkbox" class="vinc-check" value="${t.id}" ${tarefasBloco[tarefaVinculoIdx]?.vinculadas.includes(t.id)?'checked':''}>
+        <span><span style="color:var(--purple-text)">${t.acao}</span> · <span style="color:var(--teal)">#${t.prioridade}</span> · ${t.ativ}</span>
+      </label>
+    `).join('');
+  abrirModal('modal-vinculo');
+}
+
+function confirmarVinculo() {
+  if (tarefaVinculoIdx === null) return;
+  const checks = document.querySelectorAll('#vinculo-lista input[type=checkbox]:checked');
+  tarefasBloco[tarefaVinculoIdx].vinculadas = Array.from(checks).map(c => parseInt(c.value));
+  renderTarefasBloco();
+  fecharModal('modal-vinculo');
+}
+
+function renderTarefasBloco() {
+  const tbody = document.getElementById('dt-tbody');
+  if (!tarefasBloco.length) {
+    tbody.innerHTML = '<tr id="dt-empty-row"><td colspan="7" style="color:var(--purple-dim);text-align:center;padding:14px">Nenhuma tarefa definida ainda</td></tr>';
+    return;
+  }
+
+  // Agrupar por ação para destacar separadores
+  let lastAcao = null;
+  tbody.innerHTML = tarefasBloco.map((t,i) => {
+    const isNewAcao = t.acao !== lastAcao;
+    lastAcao = t.acao;
+    const sep = isNewAcao
+      ? `<tr><td colspan="7" style="background:rgba(74,32,128,.25);padding:3px 8px;font-size:10px;color:var(--pink-soft);font-weight:500;letter-spacing:.05em">${t.acao}</td></tr>`
+      : '';
+
+    const vincLabel = t.vinculadas.length
+      ? `<span style="color:var(--pink-soft);font-size:10px;cursor:pointer" onclick="editarVinculo(${i})">🔗 ${t.vinculadas.length}</span>`
+      : `<span style="color:var(--border);font-size:10px;cursor:pointer" onclick="editarVinculo(${i})">— vincular</span>`;
+
+    return sep + `<tr>
+      <td style="text-align:center">
+        <input type="number" min="1" max="99" value="${t.prioridade}"
+          style="width:36px;background:var(--bg-deep);border:0.5px solid var(--border);border-radius:4px;color:var(--teal);font-size:11px;font-family:var(--font-mono);text-align:center;padding:2px 0"
+          onchange="alterarPrioridadeTabela(${i},this.value)">
+      </td>
+      <td style="font-size:10px;color:var(--purple-dim)">${t.acao}</td>
+      <td style="font-size:10px;color:var(--purple-text)">${t.tipo || '—'}</td>
+      <td style="font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.ativ}">${t.ativ}</td>
+      <td style="font-size:10px;color:var(--purple-text);text-align:center">${t.dias}d</td>
+      <td>${vincLabel}</td>
+      <td><button class="btn-rm" onclick="removerTarefa(${i})">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function alterarPrioridadeTabela(idx, novaP) {
+  const nova = parseInt(novaP);
+  if (!nova || nova < 1) return;
+  const t = tarefasBloco[idx];
+  // Checar conflito dentro da mesma ação (excluindo si mesmo)
+  const conflito = tarefasBloco.find((x,i) => i !== idx && x.acao === t.acao && x.prioridade === nova);
+  if (conflito) {
+    mostrarFeedback(`⚠️ "${t.acao}" já tem prioridade ${nova}: "${conflito.ativ}"`);
+    renderTarefasBloco(); // reverter visual
+    return;
+  }
+  t.prioridade = nova;
+  tarefasBloco.sort((a,b) => a.acao.localeCompare(b.acao) || a.prioridade - b.prioridade);
+  renderTarefasBloco();
+  sincronizarRotina(); // reflete na Rotina Atual
+}
+
+function editarVinculo(idx) { tarefaVinculoIdx = idx; abrirModalVinculo(); }
+function removerTarefa(idx) { tarefasBloco.splice(idx,1); renderTarefasBloco(); sincronizarRotina(); }
+function limparTarefas() { tarefasBloco = []; renderTarefasBloco(); sincronizarRotina(); }
+function salvarTarefas() {
+  if (!tarefasBloco.length) { mostrarFeedback('⚠️ Adicione pelo menos uma tarefa.'); return; }
+  mostrarFeedback('✅ Tarefas salvas! Conecte ao servidor para sincronizar com o Sheets.');
+}
+
+// ── ROTINA ATUAL ─────────────────────────────────────────
+let rotinaAtual = []; // linhas da tabela Rotina Atual
+let rotinaFiltro = 'Todos';
+
+// Gera a rotina cruzando horariosBloco (Editar Blocos) × tarefasBloco (Definir Tarefas)
+function gerarRotina() {
+  if (!horariosBloco.length && !tarefasBloco.length) {
+    mostrarFeedback('⚠️ Defina blocos de horário e tarefas antes de gerar.');
+    return;
+  }
+  rotinaAtual = [];
+
+  // Para cada horário do bloco, encontra as tarefas da mesma ação, em ordem de prioridade
+  const horariosOrdenados = [...horariosBloco].sort((a,b) =>
+    (a.dia || '').localeCompare(b.dia || '') || a.ini.localeCompare(b.ini)
+  );
+
+  const tarefasPorAcao = {};
+  tarefasBloco.forEach(t => {
+    if (!tarefasPorAcao[t.acao]) tarefasPorAcao[t.acao] = [];
+    tarefasPorAcao[t.acao].push(t);
+  });
+
+  horariosOrdenados.forEach(h => {
+    const tarefasDaAcao = (tarefasPorAcao[h.acao] || []).sort((a,b) => a.prioridade - b.prioridade);
+    if (tarefasDaAcao.length === 0) {
+      // Sem tarefa definida — inclui a ação com tarefa em branco
+      rotinaAtual.push({ id: rotinaAtual.length, dia: h.dia, ini: h.ini, fim: h.fim, acao: h.acao, tarefaId: null, ativ: '(sem tarefa definida)', tipo: '—', prioridade: 0, concluido: false });
+    } else {
+      // Pega a tarefa de maior prioridade ainda não alocada
+      tarefasDaAcao.forEach((t, ti) => {
+        if (ti === 0) {
+          rotinaAtual.push({ id: rotinaAtual.length, dia: h.dia, ini: h.ini, fim: h.fim, acao: h.acao, tarefaId: t.id, ativ: t.ativ, tipo: t.tipo, prioridade: t.prioridade, concluido: false });
+        }
+      });
+    }
+  });
+
+  // Ordena: dia da semana → horário início
+  const ordemDia = {'2ª':0,'3ª':1,'4ª':2,'5ª':3,'6ª':4,'Sáb':5,'Dom':6};
+  rotinaAtual.sort((a,b) => (ordemDia[a.dia]??9) - (ordemDia[b.dia]??9) || a.ini.localeCompare(b.ini));
+
+  renderRotinaAtual();
+  mostrarFeedback(`✅ Rotina gerada — ${rotinaAtual.length} atividade(s) montadas.`);
+}
+
+// Chamada automaticamente quando prioridades mudam em Definir Tarefas
+function sincronizarRotina() {
+  if (!rotinaAtual.length) return;
+  // Atualiza ativ/tipo de cada linha que tem tarefaId
+  rotinaAtual.forEach(r => {
+    if (r.tarefaId !== null) {
+      const t = tarefasBloco.find(x => x.id === r.tarefaId);
+      if (t) { r.ativ = t.ativ; r.tipo = t.tipo; r.prioridade = t.prioridade; }
+    }
+  });
+  renderRotinaAtual();
+}
+
+function filtrarRotinaDia(el, dia) {
+  document.querySelectorAll('#ra-dias-pills .dia-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  rotinaFiltro = dia;
+  renderRotinaAtual();
+}
+
+function renderRotinaAtual() {
+  const tbody = document.getElementById('ra-tbody');
+  const filtradas = rotinaFiltro === 'Todos' ? rotinaAtual : rotinaAtual.filter(r => r.dia === rotinaFiltro);
+  document.getElementById('ra-total-label').textContent = `${filtradas.length} atividade(s)`;
+
+  if (!filtradas.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="color:var(--purple-dim);text-align:center;padding:20px;font-size:12px">Nenhuma atividade para este filtro.</td></tr>';
+    renderGanttMiniSemanal();
+    return;
+  }
+
+  let lastDia = null;
+  const ordemDia = {'2ª':0,'3ª':1,'4ª':2,'5ª':3,'6ª':4,'Sáb':5,'Dom':6};
+  const corDia   = {'2ª':'#7e57c2','3ª':'#26a69a','4ª':'#42a5f5','5ª':'#ffd54f','6ª':var_pink,'Sáb':'#ff9800','Dom':'#ef5350'};
+
+  tbody.innerHTML = filtradas.map((r, idx) => {
+    const globalIdx = rotinaAtual.indexOf(r);
+    const isNewDia = r.dia !== lastDia;
+    lastDia = r.dia;
+    const cor = corDia[r.dia] || 'var(--purple-dim)';
+
+    const sep = isNewDia && rotinaFiltro === 'Todos'
+      ? `<tr><td colspan="9" style="background:rgba(74,32,128,.3);padding:4px 10px;font-size:10px;font-weight:600;color:${cor};letter-spacing:.06em;text-transform:uppercase">${r.dia === '2ª'?'Segunda':r.dia==='3ª'?'Terça':r.dia==='4ª'?'Quarta':r.dia==='5ª'?'Quinta':r.dia==='6ª'?'Sexta':r.dia}</td></tr>`
+      : '';
+
+    const check = r.concluido
+      ? `<span style="color:#26a69a;cursor:pointer;font-size:14px" onclick="toggleConcluido(${globalIdx})">✓</span>`
+      : `<span style="color:var(--border);cursor:pointer;font-size:14px" onclick="toggleConcluido(${globalIdx})">○</span>`;
+
+    const rowStyle = r.concluido ? 'opacity:.5;' : '';
+
+    return sep + `<tr style="${rowStyle}">
+      <td style="text-align:center">
+        <input type="number" min="1" max="99" value="${r.prioridade||'—'}"
+          style="width:36px;background:var(--bg-deep);border:0.5px solid var(--border);border-radius:4px;color:var(--teal);font-size:11px;font-family:var(--font-mono);text-align:center;padding:2px 0"
+          onchange="alterarPrioridadeRotina(${globalIdx},this.value)">
+      </td>
+      <td><span style="background:${cor}22;color:${cor};border-radius:3px;padding:1px 6px;font-size:10px;font-weight:500">${r.dia}</span></td>
+      <td><span class="hora-pill">${r.ini}</span></td>
+      <td><span class="hora-pill" style="background:rgba(233,30,140,.1);color:var(--pink-soft)">${r.fim}</span></td>
+      <td style="font-size:11px;font-weight:500">${r.acao}</td>
+      <td contenteditable="true" style="font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;outline:none" title="${r.ativ}"
+        onblur="editarAtivRotina(${globalIdx},this.textContent)">${r.ativ}</td>
+      <td style="font-size:10px;color:var(--purple-text)">${r.tipo}</td>
+      <td style="text-align:center">${check}</td>
+      <td><button class="btn-rm" onclick="removerLinhaRotina(${globalIdx})">✕</button></td>
+    </tr>`;
+  }).join('');
+
+  renderGanttMiniSemanal();
+}
+
+const var_pink = '#e91e8c';
+
+function toggleConcluido(idx) {
+  rotinaAtual[idx].concluido = !rotinaAtual[idx].concluido;
+  renderRotinaAtual();
+}
+
+function editarAtivRotina(idx, novoTexto) {
+  rotinaAtual[idx].ativ = novoTexto.trim();
+  // Se esta linha tem tarefaId, atualiza prioridade reversa em Definir Tarefas
+  if (rotinaAtual[idx].tarefaId !== null) {
+    const t = tarefasBloco.find(x => x.id === rotinaAtual[idx].tarefaId);
+    if (t) t.ativ = novoTexto.trim();
+    renderTarefasBloco();
+  }
+}
+
+function alterarPrioridadeRotina(idx, novaP) {
+  const nova = parseInt(novaP);
+  if (!nova || nova < 1) return;
+  const r = rotinaAtual[idx];
+  r.prioridade = nova;
+  // Propagar para Definir Tarefas
+  if (r.tarefaId !== null) {
+    const t = tarefasBloco.find(x => x.id === r.tarefaId);
+    if (t) {
+      const conflito = tarefasBloco.find(x => x.id !== t.id && x.acao === t.acao && x.prioridade === nova);
+      if (conflito) {
+        mostrarFeedback(`⚠️ "${t.acao}" já tem prioridade ${nova} em Definir Tarefas. Ajuste lá primeiro.`);
+        return;
+      }
+      t.prioridade = nova;
+      tarefasBloco.sort((a,b) => a.acao.localeCompare(b.acao) || a.prioridade - b.prioridade);
+      renderTarefasBloco();
+    }
+  }
+  renderRotinaAtual();
+}
+
+function adicionarLinhaRotina() {
+  rotinaAtual.push({ id: rotinaAtual.length, dia: '2ª', ini: '07:00', fim: '08:00', acao: '—', tarefaId: null, ativ: 'Nova atividade', tipo: '—', prioridade: rotinaAtual.length + 1, concluido: false });
+  renderRotinaAtual();
+  mostrarFeedback('✎ Linha adicionada — edite diretamente na tabela.');
+}
+
+function removerLinhaRotina(idx) {
+  rotinaAtual.splice(idx, 1);
+  renderRotinaAtual();
+}
+
+function renderGanttMiniSemanal() {
+  const mini = document.getElementById('ra-gantt-mini');
+  const grid = document.getElementById('ra-gantt-grid');
+  if (!rotinaAtual.length) { mini.style.display = 'none'; return; }
+  mini.style.display = 'block';
+
+  // Agrupa por ação e calcula span semanal de horas
+  const porAcao = {};
+  rotinaAtual.forEach(r => {
+    if (!porAcao[r.acao]) porAcao[r.acao] = { total: 0, dias: new Set() };
+    const [hI,mI] = r.ini.split(':').map(Number);
+    const [hF,mF] = r.fim.split(':').map(Number);
+    const dur = ((hF*60+mF)-(hI*60+mI));
+    porAcao[r.acao].total += dur;
+    porAcao[r.acao].dias.add(r.dia);
+  });
+
+  const totalMin = Object.values(porAcao).reduce((s,v) => s + v.total, 0) || 1;
+  const cores = ['#7e57c2','#26a69a','#e91e8c','#42a5f5','#ffd54f','#ff9800','#ef5350','#00bcd4'];
+
+  grid.innerHTML = Object.entries(porAcao).map(([acao, v], i) => {
+    const pct = Math.max(4, Math.round((v.total / totalMin) * 100));
+    const h = Math.floor(v.total/60);
+    const m = v.total%60;
+    const cor = cores[i % cores.length];
+    return `<div style="display:flex;align-items:center;gap:8px">
+      <div style="width:110px;font-size:10px;color:var(--purple-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0" title="${acao}">${acao}</div>
+      <div style="flex:1;height:16px;background:var(--bg-deep);border-radius:3px;overflow:hidden">
+        <div style="width:${pct}%;height:100%;background:${cor};border-radius:3px;display:flex;align-items:center;padding:0 5px">
+          <span style="font-size:9px;color:#fff;white-space:nowrap;overflow:hidden">${h}h${m?m+'m':''} · ${[...v.dias].join(', ')}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function salvarRotina() {
+  if (!rotinaAtual.length) { mostrarFeedback('⚠️ Gere a rotina antes de salvar.'); return; }
+  mostrarFeedback('✅ Rotina Atual salva! Conecte ao servidor para sincronizar com o Sheets.');
+}
+
+// ── MODAIS DE SHEETS (Meta / Ação / Tarefa) ─────────────
+function salvarMeta() {
+  const meta = document.getElementById('mm-meta').value.trim();
+  if (!meta) { mostrarFeedback('⚠️ Preencha o nome da meta.'); return; }
+  mostrarFeedback('✅ Meta salva! Conecte ao servidor para sincronizar → aba META.');
+  fecharModal('modal-meta');
+}
+function salvarAcao() {
+  const reg = document.getElementById('ma-registro').value.trim();
+  if (!reg) { mostrarFeedback('⚠️ Preencha o nome da ação.'); return; }
+  mostrarFeedback('✅ Ação salva! Conecte ao servidor para sincronizar → aba AÇÕES.');
+  fecharModal('modal-acao');
+}
+function salvarTarefaModal() {
+  const ativ = document.getElementById('mt-ativ').value.trim();
+  if (!ativ) { mostrarFeedback('⚠️ Preencha a atividade.'); return; }
+  mostrarFeedback('✅ Tarefa salva! Conecte ao servidor para sincronizar → aba TAREFAS.');
+  fecharModal('modal-tarefa');
+}
+
+// ── COMPATIBILIDADE (funções antigas referenciadas) ──────
+function atualizarNomeBloco() {}
+function calcDiferenca() {}
+function salvarBlocoSheets() {}
+function limparFormBloco() {}
+function renderBlocoLista() {}
+function abrirModalHabito() {}
+function fecharModalHabito() {}
+function adicionarHabito() {}
+function renderHabitos() {}
+function abrirModalMeta() {}
+function fecharModalMeta() {}
+function adicionarMeta() {}
+function renderMetas() {}
+
+// ── HISTÓRICO DE BLOCOS ─────────────────────────────────
+let historicoBlocos = [
+  // Exemplo pré-carregado para demonstração visual
+  {
+    id: 1,
+    nome: 'Bloco_01.06.2026',
+    dataIni: '2026-06-01',
+    dataFim: '2026-06-14',
+    tarefas: [
+      { dia: '2ª', acao: 'Hábitos Saudáveis', ativ: 'Rotina de Ativação', tipo: 'Rotineira', concluido: true },
+      { dia: '2ª', acao: 'Dores no Corpo',    ativ: 'Musculação A - Superiores', tipo: 'Treino/Prática', concluido: true },
+      { dia: '2ª', acao: 'Estudos TI',        ativ: 'Pós-Grad — Intro sobre IA', tipo: 'Videoaula', concluido: true },
+      { dia: '3ª', acao: 'Tarefa - Work',     ativ: 'Demandas Diárias', tipo: 'Rotineira', concluido: true },
+      { dia: '3ª', acao: 'Dores no Corpo',    ativ: 'Musculação B - Inferiores', tipo: 'Treino/Prática', concluido: false },
+      { dia: '4ª', acao: 'Hábitos Saudáveis', ativ: 'Higiene do Sono', tipo: 'Rotineira', concluido: true },
+      { dia: '4ª', acao: 'Concurso',          ativ: 'Resumo Direito Constitucional', tipo: 'Resumo/Leitura', concluido: false },
+      { dia: '5ª', acao: 'Afinidade Relação', ativ: 'Tempo Útil Juntinho', tipo: 'Rotineira', concluido: true },
+      { dia: '5ª', acao: 'Lazer',             ativ: 'Jogos Co-op com os Parças', tipo: 'Rotineira', concluido: true },
+      { dia: '6ª', acao: 'Tarefa - Work',     ativ: 'Reunião Semanal', tipo: 'Reunião', concluido: true },
+      { dia: '6ª', acao: 'Estudos TI',        ativ: 'Pós-Grad — Machine Learning', tipo: 'Videoaula', concluido: false },
+      { dia: 'Sáb', acao: 'Cargo Melhor',     ativ: 'Curso Python — Módulo 2', tipo: 'Videoaula', concluido: true },
+    ],
+    expandido: false,
+  },
+  {
+    id: 2,
+    nome: 'Bloco_15.06.2026',
+    dataIni: '2026-06-15',
+    dataFim: '2026-06-28',
+    tarefas: [
+      { dia: '2ª', acao: 'Hábitos Saudáveis', ativ: 'Rotina de Ativação', tipo: 'Rotineira', concluido: true },
+      { dia: '2ª', acao: 'Dores no Corpo',    ativ: 'Musculação A - Superiores', tipo: 'Treino/Prática', concluido: true },
+      { dia: '3ª', acao: 'Concurso',          ativ: 'Questões Raciocínio Lógico', tipo: 'Exercício/Questões', concluido: true },
+      { dia: '4ª', acao: 'Estudos TI',        ativ: 'Pós-Grad — Redes Neurais', tipo: 'Videoaula', concluido: true },
+      { dia: '5ª', acao: 'Tarefa - Work',     ativ: 'Relatório Mensal', tipo: 'Projeto', concluido: false },
+      { dia: '6ª', acao: 'Cargo Melhor',      ativ: 'LinkedIn — Atualizar perfil', tipo: 'Projeto', concluido: false },
+      { dia: 'Sáb', acao: 'Afinidade Relação', ativ: 'Saída com Leleca', tipo: 'Rotineira', concluido: true },
+    ],
+    expandido: false,
+  }
+];
+let historicoFiltro = 'todos';
+
+function registrarBlocoAtual() {
+  // Pega os dados atuais da Rotina Atual para montar o bloco
+  if (!rotinaAtual.length) {
+    mostrarFeedback('⚠️ A Rotina Atual está vazia. Gere a rotina antes de registrar.');
+    return;
+  }
+
+  // Descobrir data inicial e final do bloco ativo
+  const nomeEl = document.getElementById('da-nome-bloco');
+  const nomeBlocoAtivo = nomeEl ? nomeEl.textContent.split(' ·')[0] : `Bloco_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'.')}`;
+  const dataIniEl = document.getElementById('da-data-ini');
+  const dataIni = dataIniEl?.value || new Date().toISOString().split('T')[0];
+
+  // Calcular data final (soma duração)
+  const duracaoEl = document.getElementById('da-duracao');
+  const unidadeEl = document.getElementById('da-unidade');
+  let dataFim = dataIni;
+  if (duracaoEl?.value) {
+    const d = new Date(dataIni + 'T00:00:00');
+    const n = parseInt(duracaoEl.value);
+    const u = unidadeEl?.value || 'dias';
+    if (u === 'dias')    d.setDate(d.getDate() + n);
+    if (u === 'semanas') d.setDate(d.getDate() + n * 7);
+    if (u === 'meses')   d.setMonth(d.getMonth() + n);
+    dataFim = d.toISOString().split('T')[0];
+  }
+
+  // Gera snapshot das tarefas da rotina atual
+  const snapshot = rotinaAtual.map(r => ({
+    dia: r.dia,
+    acao: r.acao,
+    ativ: r.ativ,
+    tipo: r.tipo,
+    concluido: r.concluido,
+  }));
+
+  // Ordena por dia da semana → horário
+  const ordemDia = {'2ª':0,'3ª':1,'4ª':2,'5ª':3,'6ª':4,'Sáb':5,'Dom':6};
+  snapshot.sort((a,b) => (ordemDia[a.dia]??9) - (ordemDia[b.dia]??9));
+
+  const novoBloco = {
+    id: Date.now(),
+    nome: nomeBlocoAtivo,
+    dataIni, dataFim,
+    tarefas: snapshot,
+    expandido: false,
+  };
+
+  historicoBlocos.unshift(novoBloco); // mais recente primeiro
+  renderHistorico();
+  atualizarIndicadoresHistorico();
+  mostrarFeedback(`✅ Bloco "${nomeBlocoAtivo}" registrado no Histórico!`);
+}
+
+function filtrarHistorico() {
+  historicoFiltro = document.getElementById('hist-filtro').value;
+  renderHistorico();
+}
+
+function toggleBlocoExpand(id) {
+  const bloco = historicoBlocos.find(b => b.id === id);
+  if (bloco) bloco.expandido = !bloco.expandido;
+  renderHistorico();
+}
+
+function atualizarIndicadoresHistorico() {
+  const total = historicoBlocos.length;
+  const totTarefas    = historicoBlocos.reduce((s,b) => s + b.tarefas.length, 0);
+  const totConcluidas = historicoBlocos.reduce((s,b) => s + b.tarefas.filter(t=>t.concluido).length, 0);
+  const pctGeral = totTarefas ? Math.round((totConcluidas / totTarefas) * 100) : 0;
+
+  let melhor = null, melhorPct = -1;
+  historicoBlocos.forEach(b => {
+    const p = b.tarefas.length ? Math.round((b.tarefas.filter(t=>t.concluido).length / b.tarefas.length) * 100) : 0;
+    if (p > melhorPct) { melhorPct = p; melhor = b; }
+  });
+
+  document.getElementById('hist-total-blocos').textContent   = total;
+  document.getElementById('hist-total-tarefas').textContent  = totTarefas;
+  document.getElementById('hist-total-concluidas').textContent = totConcluidas;
+  document.getElementById('hist-pct-geral').textContent      = `${pctGeral}% de aproveitamento`;
+  document.getElementById('hist-melhor-bloco').textContent   = melhor ? melhor.nome : '—';
+  document.getElementById('hist-melhor-pct').textContent     = melhor ? `${melhorPct}% concluído` : '—';
+}
+
+function renderHistorico() {
+  atualizarIndicadoresHistorico();
+  const lista = document.getElementById('hist-lista');
+  const ordemDia = {'2ª':0,'3ª':1,'4ª':2,'5ª':3,'6ª':4,'Sáb':5,'Dom':6};
+
+  // Aplicar filtro
+  const blocosFiltrados = historicoBlocos.filter(b => {
+    const pct = b.tarefas.length ? Math.round((b.tarefas.filter(t=>t.concluido).length / b.tarefas.length)*100) : 0;
+    if (historicoFiltro === 'completo') return pct >= 80;
+    if (historicoFiltro === 'parcial')  return pct >= 40 && pct < 80;
+    if (historicoFiltro === 'baixo')    return pct < 40;
+    return true;
+  });
+
+  if (!blocosFiltrados.length) {
+    lista.innerHTML = '<div style="color:var(--purple-dim);font-size:12px;text-align:center;padding:20px">Nenhum bloco encontrado para este filtro.</div>';
+    return;
+  }
+
+  lista.innerHTML = blocosFiltrados.map(b => {
+    const total      = b.tarefas.length;
+    const concluidas = b.tarefas.filter(t => t.concluido).length;
+    const pendentes  = total - concluidas;
+    const pct        = total ? Math.round((concluidas / total) * 100) : 0;
+
+    // Cor da barra e badge de acordo com o %
+    const corBarra  = pct >= 80 ? '#26a69a' : pct >= 40 ? '#ffd54f' : '#ef5350';
+    const corBadge  = pct >= 80 ? 'badge-ok' : pct >= 40 ? 'badge-ab' : 'badge-fl';
+    const labelPct  = pct >= 80 ? 'Ótimo' : pct >= 40 ? 'Parcial' : 'Baixo';
+
+    // Datas formatadas
+    const fmtData = iso => iso ? new Date(iso+'T00:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+
+    // Tarefas ordenadas por dia da semana (para expandido)
+    const tarefasOrdenadas = [...b.tarefas].sort((a,c) =>
+      (ordemDia[a.dia]??9) - (ordemDia[c.dia]??9)
+    );
+
+    // Agrupar por dia para exibição
+    let lastDia = null;
+    const linhasTarefas = tarefasOrdenadas.map(t => {
+      const sepDia = t.dia !== lastDia;
+      lastDia = t.dia;
+      const icone = t.concluido
+        ? `<span style="color:#26a69a;font-size:13px">✓</span>`
+        : `<span style="color:var(--purple-dim);font-size:13px">○</span>`;
+      const nomeStyle = t.concluido
+        ? 'color:var(--purple-dim);text-decoration:line-through'
+        : 'color:var(--fg)';
+
+      return (sepDia ? `
+        <tr>
+          <td colspan="5" style="background:rgba(74,32,128,.2);padding:3px 10px;font-size:10px;font-weight:600;color:var(--teal);letter-spacing:.05em">
+            ${t.dia === '2ª'?'Segunda-feira':t.dia==='3ª'?'Terça-feira':t.dia==='4ª'?'Quarta-feira':t.dia==='5ª'?'Quinta-feira':t.dia==='6ª'?'Sexta-feira':t.dia==='Sáb'?'Sábado':'Domingo'}
+          </td>
+        </tr>` : '') + `
+        <tr style="border-top:0.5px solid var(--border)">
+          <td style="text-align:center;padding:5px 8px;width:28px">${icone}</td>
+          <td style="font-size:11px;padding:5px 8px;${nomeStyle}">${t.ativ}</td>
+          <td style="font-size:10px;color:var(--purple-text);padding:5px 8px">${t.acao}</td>
+          <td style="font-size:10px;color:var(--purple-dim);padding:5px 8px">${t.tipo}</td>
+          <td style="padding:5px 8px">
+            <span class="badge ${t.concluido ? 'badge-ok' : 'badge-ab'}" style="font-size:9px">
+              ${t.concluido ? 'Feito' : 'Pendente'}
+            </span>
+          </td>
+        </tr>`;
+    }).join('');
+
+    return `
+    <div style="background:var(--bg-card);border:0.5px solid var(--border);border-radius:10px;overflow:hidden">
+
+      <!-- Cabeçalho do card — clicável -->
+      <div style="padding:12px 14px;cursor:pointer;display:flex;gap:12px;align-items:center" onclick="toggleBlocoExpand(${b.id})">
+
+        <!-- Ícone expansão -->
+        <span style="color:var(--purple-dim);font-size:12px;transition:transform .2s;display:inline-block;transform:rotate(${b.expandido?90:0}deg);flex-shrink:0">▶</span>
+
+        <!-- Infos principais -->
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="font-size:13px;font-weight:500;color:var(--fg);font-family:var(--font-mono)">${b.nome}</span>
+            <span class="badge ${corBadge}" style="font-size:9px">${labelPct}</span>
+          </div>
+          <div style="font-size:10px;color:var(--purple-dim);margin-top:2px">
+            ${fmtData(b.dataIni)} → ${fmtData(b.dataFim)}
+          </div>
+        </div>
+
+        <!-- Indicadores inline -->
+        <div style="display:flex;gap:16px;align-items:center;flex-shrink:0">
+          <div style="text-align:center">
+            <div style="font-size:16px;font-weight:600;font-family:var(--font-mono);color:var(--teal)">${total}</div>
+            <div style="font-size:9px;color:var(--purple-dim)">tarefas</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:16px;font-weight:600;font-family:var(--font-mono);color:#26a69a">${concluidas}</div>
+            <div style="font-size:9px;color:var(--purple-dim)">feitas</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:16px;font-weight:600;font-family:var(--font-mono);color:${pendentes>0?'#ffd54f':'#26a69a'}">${pendentes}</div>
+            <div style="font-size:9px;color:var(--purple-dim)">pendentes</div>
+          </div>
+          <!-- Barra de progresso vertical -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+            <div style="font-size:12px;font-weight:600;font-family:var(--font-mono);color:${corBarra}">${pct}%</div>
+            <div style="width:48px;height:6px;background:var(--bg-deep);border-radius:3px;overflow:hidden">
+              <div style="width:${pct}%;height:100%;background:${corBarra};border-radius:3px;transition:width .4s"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Painel expansível com tarefas -->
+      ${b.expandido ? `
+      <div style="border-top:0.5px solid var(--border)">
+        <table style="width:100%;border-collapse:collapse;font-size:11px">
+          <thead>
+            <tr style="background:var(--bg-header)">
+              <th style="padding:6px 8px;text-align:center;font-size:10px;color:var(--purple-text);font-weight:500;width:28px">✓</th>
+              <th style="padding:6px 8px;text-align:left;font-size:10px;color:var(--purple-text);font-weight:500">Tarefa</th>
+              <th style="padding:6px 8px;text-align:left;font-size:10px;color:var(--purple-text);font-weight:500">Ação</th>
+              <th style="padding:6px 8px;text-align:left;font-size:10px;color:var(--purple-text);font-weight:500">Tipo</th>
+              <th style="padding:6px 8px;text-align:left;font-size:10px;color:var(--purple-text);font-weight:500;width:80px">Status</th>
+            </tr>
+          </thead>
+          <tbody>${linhasTarefas}</tbody>
+        </table>
+      </div>` : ''}
+
+    </div>`;
+  }).join('');
+}
+
+// Inicializar histórico com os dados de exemplo
+renderHistorico();
+
+// ── TAREFAS ─────────────────────────────────────────────
+function abrirModalTarefa() { document.getElementById('form-tarefa').style.display = 'block'; }
+function fecharModalTarefa() { document.getElementById('form-tarefa').style.display = 'none'; }
+
+function adicionarTarefa() {
+  const nome = document.getElementById('t-nome').value.trim();
+  if (!nome) return;
+  tarefas.push({ id: Date.now(), nome, local: document.getElementById('t-local').value, tipo: document.getElementById('t-tipo').value, feita: false });
+  document.getElementById('t-nome').value = '';
+  fecharModalTarefa();
+  renderTarefas();
+}
+
+function toggleTarefa(id) {
+  const t = tarefas.find(x => x.id === id);
+  if (t) t.feita = !t.feita;
+  renderTarefas();
+}
+
+function renderTarefas() {
+  const tbody = document.getElementById('tarefas-tbody');
+  if (!tarefas.length) { tbody.innerHTML = '<tr><td colspan="5" style="color:var(--purple-dim);text-align:center;padding:16px">Nenhuma tarefa cadastrada</td></tr>'; return; }
+  tbody.innerHTML = tarefas.map(t => `
+    <tr>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${t.feita ? 'text-decoration:line-through;color:var(--purple-dim)' : ''}">${t.nome}</td>
+      <td>${t.local || '—'}</td><td>${t.tipo}</td>
+      <td><span class="badge ${t.feita ? 'badge-ok' : 'badge-ab'}">${t.feita ? 'Concluída' : 'Em Espera'}</span></td>
+      <td><button class="btn-mini" onclick="toggleTarefa(${t.id})">${t.feita ? '↩' : '✓'}</button></td>
+    </tr>
+  `).join('');
+}
+
+// ── NOTAS ───────────────────────────────────────────────
+function salvarNota() {
+  const titulo = document.getElementById('nota-titulo').value.trim();
+  const conteudo = document.getElementById('nota-conteudo').value.trim();
+  if (!titulo && !conteudo) return;
+  const agora = new Date();
+  notas.unshift({ id: Date.now(), titulo: titulo || 'Sem título', conteudo, hora: agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) });
+  document.getElementById('nota-titulo').value = '';
+  document.getElementById('nota-conteudo').value = '';
+  renderNotas();
+}
+
+function renderNotas() {
+  const el = document.getElementById('notas-lista');
+  if (!notas.length) { el.innerHTML = '<div style="color:var(--purple-dim);font-size:12px">Nenhuma nota salva.</div>'; return; }
+  el.innerHTML = notas.map(n => `
+    <div class="hb-row" style="flex-direction:column;align-items:flex-start;gap:2px">
+      <div style="display:flex;justify-content:space-between;width:100%">
+        <span style="font-weight:500;color:var(--fg)">${n.titulo}</span>
+        <span style="font-size:10px;color:var(--purple-dim)">${n.hora}</span>
+      </div>
+      ${n.conteudo ? `<span style="font-size:11px;color:var(--purple-text)">${n.conteudo.substring(0,80)}${n.conteudo.length > 80 ? '...' : ''}</span>` : ''}
+    </div>
+  `).join('');
+}
+
+// ── TIMER ───────────────────────────────────────────────
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  return `${String(m).padStart(2,'0')}:${String(s % 60).padStart(2,'0')}`;
+}
+
+function setTimer(min) {
+  resetTimer();
+  timerSeconds = min * 60;
+  timerTotal = min * 60;
+  timerSessaoLabel = min + ' min';
+  document.getElementById('timer-display').textContent = formatTime(timerSeconds);
+}
+
+function toggleTimer() {
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    document.getElementById('btn-timer').textContent = '▶ Retomar';
+  } else {
+    timerRunning = true;
+    document.getElementById('btn-timer').textContent = '⏸ Pausar';
+    timerInterval = setInterval(() => {
+      timerSeconds--;
+      document.getElementById('timer-display').textContent = formatTime(timerSeconds);
+      if (timerSeconds <= 0) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        document.getElementById('btn-timer').textContent = '▶ Iniciar';
+        const agora = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        sessoes.unshift({ label: timerSessaoLabel, hora: agora });
+        renderSessoes();
+        document.getElementById('timer-display').textContent = '✓ Pronto!';
+      }
+    }, 1000);
+  }
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerSeconds = timerTotal;
+  document.getElementById('timer-display').textContent = formatTime(timerSeconds);
+  document.getElementById('btn-timer').textContent = '▶ Iniciar';
+}
+
+function renderSessoes() {
+  const el = document.getElementById('sessoes-lista');
+  if (!sessoes.length) { el.innerHTML = '<div style="color:var(--purple-dim);font-size:12px">Nenhuma sessão registrada hoje.</div>'; return; }
+  el.innerHTML = sessoes.map(s =>
+    `<div class="row-item"><span>Sessão concluída — ${s.label}</span><span class="mono teal">${s.hora}</span></div>`
+  ).join('');
+}
+
+// ── INIT ────────────────────────────────────────────────
+setupDate();
+atualizarDashboard();
+</script>
+</body>
+</html>

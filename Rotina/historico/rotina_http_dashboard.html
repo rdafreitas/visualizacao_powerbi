@@ -1,0 +1,298 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.shell{display:grid;grid-template-columns:200px 1fr;grid-template-rows:48px 1fr;height:580px;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface-1)}
+.topbar{grid-column:1/-1;background:#1a0a2e;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:0.5px solid #4a2080}
+.logo{color:#f06cb8;font-weight:500;font-size:14px;display:flex;align-items:center;gap:6px}
+.logo i{color:#e91e8c}
+.dots{display:flex;gap:8px;align-items:center}
+.dot{width:8px;height:8px;border-radius:50%}
+.dot-ok{background:#26a69a}
+.dot-off{background:#555}
+.dot-lbl{font-size:11px;color:#7e57c2}
+
+.sidebar{background:#2a1052;border-right:0.5px solid #4a2080;padding:12px 0;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+.sec-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#7e57c2;padding:10px 12px 4px}
+.nav{display:flex;align-items:center;gap:8px;padding:7px 12px;font-size:12px;color:#b39ddb;cursor:pointer;border-left:2px solid transparent}
+.nav.active{background:rgba(233,30,140,.12);color:#f06cb8;border-left-color:#e91e8c}
+.nav i{font-size:15px}
+
+.main{background:#200c3d;overflow-y:auto;display:flex;flex-direction:column}
+.page{padding:16px;display:none;flex-direction:column;gap:12px}
+.page.active{display:flex}
+
+.ph{display:flex;justify-content:space-between;align-items:center}
+.ptitle{font-size:15px;font-weight:500;color:#f0e6ff}
+.ptitle span{color:#e91e8c}
+
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.card{background:#2a1052;border:0.5px solid #4a2080;border-radius:10px;padding:12px}
+.clabel{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#00bcd4;margin-bottom:4px}
+.cval{font-size:20px;font-weight:500;color:#e91e8c;font-family:var(--font-mono)}
+.cval.teal{color:#00bcd4}
+.cval.white{color:#f0e6ff;font-size:15px}
+.csub{font-size:11px;color:#7e57c2;margin-top:2px}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.card-sm{background:#2a1052;border:0.5px solid #4a2080;border-radius:10px;padding:12px}
+
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg.full{grid-column:1/-1}
+.fg label{font-size:11px;color:#b39ddb}
+.fg input,.fg select,.fg textarea{background:#1a0a2e;border:0.5px solid #4a2080;border-radius:6px;color:#f0e6ff;font-size:12px;padding:6px 9px;font-family:var(--font-sans);width:100%}
+.fg textarea{min-height:56px;resize:none}
+.fg input::placeholder{color:#4a2080}
+
+.btn-row{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between}
+.chk{display:flex;align-items:center;gap:6px;font-size:12px;color:#b39ddb;cursor:pointer}
+.chk input{accent-color:#e91e8c;width:auto}
+.btn-pink{background:linear-gradient(135deg,#e91e8c,#9c27b0);color:#fff;border:none;border-radius:6px;padding:7px 16px;font-size:12px;font-weight:500;cursor:pointer}
+.btn-teal{background:linear-gradient(135deg,#00bcd4,#00838f);color:#fff;border:none;border-radius:6px;padding:7px 16px;font-size:12px;font-weight:500;cursor:pointer}
+
+.row-item{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:0.5px solid #4a2080;font-size:12px;color:#f0e6ff}
+.row-item:last-child{border-bottom:none}
+.mono{font-family:var(--font-mono);color:#e91e8c}
+.mono.teal{color:#00bcd4}
+
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:500}
+.badge-ok{background:rgba(38,166,154,.2);color:#26a69a}
+.badge-ab{background:rgba(255,152,0,.2);color:#ff9800}
+.badge-fl{background:rgba(233,30,140,.15);color:#f06cb8}
+.badge-re{background:rgba(0,188,212,.15);color:#4dd0e1}
+
+.table-wrap{border-radius:8px;overflow:hidden;border:0.5px solid #4a2080}
+table{width:100%;border-collapse:collapse;font-size:11px}
+thead th{background:#341465;color:#b39ddb;font-weight:500;font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:7px 10px;text-align:left}
+tbody tr{border-top:0.5px solid #4a2080}
+tbody td{padding:6px 10px;color:#f0e6ff}
+tbody tr:hover{background:rgba(74,32,128,.3)}
+
+.hb-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:0.5px solid #4a2080;font-size:12px}
+.hb-row:last-child{border-bottom:none}
+.btn-mini{background:#341465;border:0.5px solid #4a2080;color:#b39ddb;border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer}
+
+.tg-split{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+</style>
+
+<div class="shell">
+  <div class="topbar">
+    <div class="logo"><i class="ti ti-calendar-check" aria-hidden="true"></i> Rotina <span style="color:#7e57c2;margin:0 4px">/</span> <span>Organização Pessoal</span></div>
+    <div class="dots">
+      <span class="dot dot-ok"></span><span class="dot-lbl">Sheets</span>
+      <span class="dot dot-ok" style="margin-left:6px"></span><span class="dot-lbl">Habitica</span>
+      <span class="dot dot-off" style="margin-left:6px"></span><span class="dot-lbl">Toggl</span>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <span class="sec-label">Rotina</span>
+    <div class="nav active" onclick="show('dashboard')"><i class="ti ti-layout-dashboard" aria-hidden="true"></i> Dashboard</div>
+    <div class="nav" onclick="show('habitos')"><i class="ti ti-repeat" aria-hidden="true"></i> Novo Hábito</div>
+    <div class="nav" onclick="show('ciclo')"><i class="ti ti-calendar" aria-hidden="true"></i> Ciclo Trimestral</div>
+    <div class="nav" onclick="show('acoes')"><i class="ti ti-target" aria-hidden="true"></i> Ações / Metas</div>
+    <span class="sec-label">Integrações</span>
+    <div class="nav" onclick="show('habitica')"><i class="ti ti-star" aria-hidden="true"></i> Habitica</div>
+    <div class="nav" onclick="show('toggl')"><i class="ti ti-clock" aria-hidden="true"></i> Toggl</div>
+    <span class="sec-label">Planilha</span>
+    <div class="nav" onclick="show('tarefas')"><i class="ti ti-list" aria-hidden="true"></i> Tarefas</div>
+    <div class="nav" onclick="show('estudos')"><i class="ti ti-book" aria-hidden="true"></i> Plano de Estudos</div>
+  </div>
+
+  <div class="main">
+    <!-- DASHBOARD -->
+    <div class="page active" id="p-dashboard">
+      <div class="ph"><div class="ptitle"><span>Dashboard</span> — Organização Pessoal</div><span style="font-size:11px;color:#7e57c2">3º Trimestre</span></div>
+      <div class="cards">
+        <div class="card">
+          <div class="clabel">Hábitos Hoje</div>
+          <div class="cval">5</div>
+          <div class="csub">3 concluídos</div>
+        </div>
+        <div class="card">
+          <div class="clabel">Ciclo Ativo</div>
+          <div class="cval white">Bloco_01/06/26</div>
+          <div class="csub">01/jun → 05/jul</div>
+        </div>
+        <div class="card">
+          <div class="clabel">Metas Ativas</div>
+          <div class="cval teal">7</div>
+          <div class="csub">2 categorias</div>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="card-sm">
+          <div class="clabel">Últimos Hábitos</div>
+          <div style="margin-top:8px">
+            <div class="row-item"><span>Escovar os Dentes</span><span class="badge badge-ok">Feito</span></div>
+            <div class="row-item"><span>Musculação</span><span class="badge badge-ok">Feito</span></div>
+            <div class="row-item"><span>Futevôlei</span><span class="badge badge-ok">Feito</span></div>
+            <div class="row-item"><span>Dieta</span><span class="badge badge-ab">Pendente</span></div>
+          </div>
+        </div>
+        <div class="card-sm">
+          <div class="clabel">Metas Recentes</div>
+          <div style="margin-top:8px">
+            <div class="row-item"><span>Dores no Corpo</span><span class="badge badge-fl">Reavaliar</span></div>
+            <div class="row-item"><span>Melhorar Exame</span><span class="badge badge-re">Próximo</span></div>
+            <div class="row-item"><span>Vida Ativa</span><span class="badge badge-ok">Ativo</span></div>
+            <div class="row-item"><span>Hábitos Saudáveis</span><span class="badge badge-ok">Ativo</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOVO HÁBITO -->
+    <div class="page" id="p-habitos">
+      <div class="ph"><div class="ptitle">Novo <span>Hábito</span></div></div>
+      <div class="card-sm">
+        <div class="form-grid">
+          <div class="fg"><label>Objetivo</label><input type="text" placeholder="Ex: Escovar os Dentes" /></div>
+          <div class="fg"><label>ID da Meta</label><input type="text" placeholder="HABIT_0001" /></div>
+          <div class="fg"><label>Categoria</label>
+            <select><option>Hábito</option><option>Saúde</option><option>Exercícios</option><option>Carreira Profissional</option></select>
+          </div>
+          <div class="fg"><label>Detalhe</label><input type="text" placeholder="Ex: Após Café da Manhã" /></div>
+          <div class="fg"><label>Data Planejada</label><input type="date" /></div>
+          <div class="fg"><label>Horário Início</label><input type="time" value="07:00" /></div>
+          <div class="fg"><label>Horário Fim</label><input type="time" value="07:30" /></div>
+          <div class="fg"><label>Medida (meta)</label><input type="number" placeholder="1" /></div>
+          <div class="fg"><label>Unidade</label>
+            <select><option>Feito</option><option>Horas</option><option>Calorias</option><option>Dias</option><option>km</option></select>
+          </div>
+          <div class="fg"><label>O que foi feito?</label><textarea placeholder="Descreva o resultado…"></textarea></div>
+          <div class="btn-row">
+            <label class="chk"><input type="checkbox"> Criar tarefa no Habitica</label>
+            <button class="btn-pink">Salvar no Sheets</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CICLO TRIMESTRAL -->
+    <div class="page" id="p-ciclo">
+      <div class="ph"><div class="ptitle"><span>Ciclo Trimestral</span></div><span style="font-size:11px;color:#7e57c2">Bloco_01/06/26</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Objetivo</th><th>Categoria</th><th>Horário</th><th>Ok?</th><th>Dificuldade</th></tr></thead>
+          <tbody>
+            <tr><td>Rotina de Ativação</td><td>Hábitos Saudáveis</td><td>07:00–07:30</td><td><span class="badge badge-ok">Sim</span></td><td style="color:#b39ddb">Fácil</td></tr>
+            <tr><td>Musculação B - Inferiores</td><td>Joelho</td><td>07:15–08:15</td><td><span class="badge badge-ok">Sim</span></td><td style="color:#b39ddb">Média</td></tr>
+            <tr><td>Pós-Graduação</td><td>Ciência de Dados</td><td>08:00–08:50</td><td><span class="badge badge-ok">Sim</span></td><td style="color:#b39ddb">Fácil</td></tr>
+            <tr><td>Demandas Work</td><td>Tarefa - Work</td><td>09:00–12:30</td><td><span class="badge badge-ab">Não</span></td><td style="color:#b39ddb">—</td></tr>
+            <tr><td>Ajuste dos Planos</td><td>Hábitos Saudáveis</td><td>13:30–13:45</td><td><span class="badge badge-ab">Não</span></td><td style="color:#b39ddb">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- AÇÕES -->
+    <div class="page" id="p-acoes">
+      <div class="ph"><div class="ptitle"><span>Ações</span> / Metas</div></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Meta</th><th>Foco</th><th>Prazo</th><th>Medida</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Dores no Corpo</td><td>Musculação A - Frontal</td><td>04/jun.</td><td>3 Dias</td><td><span class="badge badge-fl">Reavaliar</span></td></tr>
+            <tr><td>Dores no Corpo</td><td>Musculação B - Anteriores</td><td>05/jun.</td><td>3 Dias</td><td><span class="badge badge-fl">Reavaliar</span></td></tr>
+            <tr><td>Melhorar Exame</td><td>Cross Fit</td><td>—</td><td>0 Dias</td><td><span class="badge badge-re">Próximo</span></td></tr>
+            <tr><td>Melhorar Exame</td><td>Futevôlei</td><td>05/jun.</td><td>1 Dias</td><td><span class="badge badge-re">Próximo</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- HABITICA -->
+    <div class="page" id="p-habitica">
+      <div class="ph"><div class="ptitle"><i class="ti ti-star" style="color:#e91e8c" aria-hidden="true"></i> <span>Habitica</span></div>
+        <button class="btn-mini">Setup Rotina</button>
+      </div>
+      <div class="cards" style="grid-template-columns:repeat(3,1fr)">
+        <div class="card"><div class="clabel">Personagem</div><div class="cval white" style="font-size:14px">Renan</div><div class="csub">Nível 24</div></div>
+        <div class="card"><div class="clabel">HP / Mana</div><div class="cval" style="font-size:16px">47 / 90</div></div>
+        <div class="card"><div class="clabel">Gold</div><div class="cval teal" style="font-size:16px">312 GP</div></div>
+      </div>
+      <div class="card-sm">
+        <div class="clabel" style="margin-bottom:8px">Tarefas Pendentes</div>
+        <div class="hb-row"><span>Registrar hábitos do dia</span><button class="btn-mini">✓ Concluir</button></div>
+        <div class="hb-row"><span>Plano de estudos — TI</span><button class="btn-mini">✓ Concluir</button></div>
+        <div class="hb-row"><span>Musculação A - Frontal</span><button class="btn-mini">✓ Concluir</button></div>
+        <div class="hb-row"><span>Revisão semanal</span><button class="btn-mini">✓ Concluir</button></div>
+      </div>
+    </div>
+
+    <!-- TOGGL -->
+    <div class="page" id="p-toggl">
+      <div class="ph"><div class="ptitle"><i class="ti ti-clock" style="color:#00bcd4" aria-hidden="true"></i> <span>Toggl</span></div></div>
+      <div class="tg-split">
+        <div class="card-sm">
+          <div class="clabel">Iniciar Timer</div>
+          <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">
+            <input type="text" placeholder="Descrição da atividade" style="background:#1a0a2e;border:0.5px solid #4a2080;border-radius:6px;color:#f0e6ff;font-size:12px;padding:6px 9px;font-family:var(--font-sans);width:100%">
+            <button class="btn-teal">▶ Iniciar</button>
+          </div>
+        </div>
+        <div class="card-sm">
+          <div class="clabel">Registrar Rotina</div>
+          <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">
+            <input type="number" value="30" style="background:#1a0a2e;border:0.5px solid #4a2080;border-radius:6px;color:#f0e6ff;font-size:12px;padding:6px 9px;font-family:var(--font-sans);width:100%">
+            <button class="btn-pink">📊 Salvar minutos</button>
+          </div>
+        </div>
+      </div>
+      <div class="card-sm">
+        <div class="clabel" style="margin-bottom:8px">Hoje</div>
+        <div class="row-item"><span>Musculação B - Inferiores</span><span class="mono teal">1h 00m</span></div>
+        <div class="row-item"><span>Pós-Graduação - Intro IA</span><span class="mono teal">0h 50m</span></div>
+        <div class="row-item"><span>Demandas Work</span><span class="mono teal">3h 30m</span></div>
+      </div>
+    </div>
+
+    <!-- TAREFAS -->
+    <div class="page" id="p-tarefas">
+      <div class="ph"><div class="ptitle"><span>Tarefas</span></div></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Atividade</th><th>Local</th><th>Tipo</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">LAN, WAN e SDN - 1. Classificação das Redes</td><td>GRAN SUSEP</td><td>Gravação</td><td><span class="badge badge-ab">Em Espera</span></td></tr>
+            <tr><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">LAN, WAN e SDN - 2. Topologias de Rede</td><td>GRAN SUSEP</td><td>Gravação</td><td><span class="badge badge-ab">Em Espera</span></td></tr>
+            <tr><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">SDN - 3. Redes de Longa Distância</td><td>GRAN SUSEP</td><td>Gravação</td><td><span class="badge badge-ab">Em Espera</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PLANO DE ESTUDOS -->
+    <div class="page" id="p-estudos">
+      <div class="ph"><div class="ptitle"><span>Plano de Estudos</span></div></div>
+      <div class="card-sm">
+        <div class="form-grid">
+          <div class="fg"><label>Foco</label><input type="text" placeholder="Ex: Políticas Públicas" /></div>
+          <div class="fg"><label>Conhecimento</label>
+            <select><option>ESPECÍFICO</option><option>GERAL</option></select>
+          </div>
+          <div class="fg"><label>Eixo / Disciplina</label><input type="text" placeholder="EIXO 3 - GERÊNCIA E SUPORTE DE TI" /></div>
+          <div class="fg"><label>Data</label><input type="date" /></div>
+          <div class="fg"><label>Início</label><input type="time" /></div>
+          <div class="fg"><label>Fim</label><input type="time" /></div>
+          <div class="fg"><label>Tipo de Estudo</label>
+            <select><option>Videoaula</option><option>Resumo</option><option>Exercício</option><option>Revisão</option></select>
+          </div>
+          <div class="fg"><label>Observação</label><input type="text" placeholder="Ex: 1.1 a 1.4" /></div>
+          <div class="btn-row"><span></span><button class="btn-teal">Salvar no Sheets</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function show(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
+  document.getElementById('p-'+page).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+</script>
