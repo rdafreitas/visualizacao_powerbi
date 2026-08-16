@@ -19,6 +19,14 @@ export const TAREFA_KEYS = {
   detail:    (id: string)     => ['tarefas', 'detail', id]   as const,
 } as const;
 
+// ── Tipo do contexto de rollback ──────────────────────────
+// Compartilhado pelas três mutations — informa ao TypeScript
+// que o objeto retornado pelo onMutate tem a propriedade `anterior`.
+
+interface MutationContext {
+  anterior: Tarefa[] | undefined;
+}
+
 // ── Hook principal ────────────────────────────────────────
 
 export function useTarefas() {
@@ -57,10 +65,9 @@ export function useTarefas() {
 
   // ── Criar ─────────────────────────────────────────────
 
-  const criar = useMutation<Tarefa, Error, CreateTarefaDTO>({
+  const criar = useMutation<Tarefa, Error, CreateTarefaDTO, MutationContext>({
     mutationFn: (input) => tarefaApi.criar(input) as Promise<Tarefa>,
-    // Optimistic update: insere na cache antes da resposta da API
-    onMutate: async (nova) => {
+    onMutate: async (nova): Promise<MutationContext> => {
       await queryClient.cancelQueries({ queryKey: TAREFA_KEYS.all });
       const anterior = queryClient.getQueryData<Tarefa[]>(TAREFA_KEYS.all);
 
@@ -69,16 +76,14 @@ export function useTarefas() {
         { ...nova, id: `temp-${Date.now()}`, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as Tarefa,
       ]);
 
-      return { anterior }; // contexto para rollback
+      return { anterior };
     },
     onError: (_err, _nova, ctx) => {
-      // Rollback em caso de erro
       if (ctx?.anterior) {
         queryClient.setQueryData(TAREFA_KEYS.all, ctx.anterior);
       }
     },
     onSettled: () => {
-      // Sempre revalida após criar (seja sucesso ou erro)
       queryClient.invalidateQueries({ queryKey: TAREFA_KEYS.all });
     },
   });
@@ -88,10 +93,11 @@ export function useTarefas() {
   const atualizar = useMutation<
     Tarefa,
     Error,
-    { id: string; data: UpdateTarefaDTO }
+    { id: string; data: UpdateTarefaDTO },
+    MutationContext
   >({
     mutationFn: ({ id, data }) => tarefaApi.atualizar(id, data) as Promise<Tarefa>,
-    onMutate: async ({ id, data }) => {
+    onMutate: async ({ id, data }): Promise<MutationContext> => {
       await queryClient.cancelQueries({ queryKey: TAREFA_KEYS.all });
       const anterior = queryClient.getQueryData<Tarefa[]>(TAREFA_KEYS.all);
 
@@ -111,14 +117,16 @@ export function useTarefas() {
 
   // ── Excluir ───────────────────────────────────────────
 
-  const excluir = useMutation<void, Error, string>({
+  const excluir = useMutation<void, Error, string, MutationContext>({
     mutationFn: (id) => tarefaApi.excluir(id) as Promise<void>,
-    onMutate: async (id) => {
+    onMutate: async (id): Promise<MutationContext> => {
       await queryClient.cancelQueries({ queryKey: TAREFA_KEYS.all });
       const anterior = queryClient.getQueryData<Tarefa[]>(TAREFA_KEYS.all);
+
       queryClient.setQueryData<Tarefa[]>(TAREFA_KEYS.all, (old = []) =>
         old.filter((t) => t.id !== id)
       );
+
       return { anterior };
     },
     onError: (_err, _id, ctx) => {
