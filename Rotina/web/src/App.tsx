@@ -14,7 +14,7 @@ function App() {
   const tarefasConcluidas = tasks.filter((t) => t.completed).length;
 
   return (
-    <div className="w-screen h-screen flex justify-center">
+    <div className="w-screen h-screen flex justify-center"> {/* Container principal - Conteudo pega toda tela e fica centralizado */}
       <div className="w-[500px]">
         <Cabecalho />
         <LevelUp
@@ -22,9 +22,7 @@ function App() {
           totalTarefas={tasks.length}
           tarefasCompletas={tarefasConcluidas}
         />
-        <FasesDia 
-          faseDia={"Tarde"} 
-          tarefa={tasks} />
+        <FasesDia faseDia={"Tarde"} tarefa={tasks} />
       </div>
     </div>
   );

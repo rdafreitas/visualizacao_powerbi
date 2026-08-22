@@ -16,7 +16,7 @@ function FasesDia({ tarefa, faseDia }: FasesDiaProps) {
   return (
     <div className="">
 
-      <ul className="space-y-2 p-6 bg-purple-800 rounded-md shadow">
+      <ul className="space-y-2 p-6 bg-purple-800 rounded-md shadow"> {/* Container principal - Espaçamento entre tarefas */}
 
         {/* Definir a fase do Dia: manhã, tarde ou noite */}
         <h2 className="text-left text-pink-400" >{faseDia}</h2>

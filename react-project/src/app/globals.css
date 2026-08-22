@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+/* ── Tokens de cor PaVoar ───────────────────────────────────── */
+@theme {
+  /* Primária */
+  --color-purple:       #2D1B69;
+  --color-purple-light: #3D2A85;
+
+  /* Destaque */
+  --color-orange:       #FF6B35;
+  --color-orange-dk:    #FF4500;
+
+  /* Admin / conquistas */
+  --color-gold:         #FFD166;
+  --color-gold-dk:      #e6a800;
+
+  /* Professor / sucesso */
+  --color-green:        #06D6A0;
+  --color-green-dk:     #04956E;
+
+  /* Alertas / erros */
+  --color-red:          #EF476F;
+
+  /* Neutros */
+  --color-gray-bg:      #F4F4F8;
+  --color-gray-mid:     #9B9BB4;
+  --color-gray-dark:    #1A1A2E;
+
+  /* Fontes */
+  --font-poppins: 'Poppins', sans-serif;
+  --font-inter:   'Inter', sans-serif;
+}
+
+/* ── Reset e base ───────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  font-family: 'Inter', sans-serif;
+  background-color: #F4F4F8;
+  color: #1A1A2E;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Utilitários de scroll ──────────────────────────────────── */
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Animação do modal ──────────────────────────────────────── */
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-modal-in {
+  animation: modalIn 0.25s ease forwards;
+}
+
+/* ── Animação do toast ──────────────────────────────────────── */
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.animate-toast-in {
+  animation: toastIn 0.3s ease forwards;
+}
+
+/* ── Toggle switch ──────────────────────────────────────────── */
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #D0D0E0;
+  border-radius: 9999px;
+  transition: background 0.3s;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  left: 3px;
+  bottom: 3px;
+  transition: transform 0.3s;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+input:checked + .toggle-slider {
+  background: #2D1B69;
+}
+
+input:checked + .toggle-slider::before {
+  transform: translateX(18px);
+}
