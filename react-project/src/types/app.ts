@@ -12,8 +12,9 @@ export type Permission =
   | 'admin:alunos'
   | 'admin:agenda'
   | 'admin:professores'
-  | 'admin:financeiro'   // somente proprietario
-  | 'admin:perfil'       // somente proprietario
+  | 'admin:financeiro'        // somente proprietario
+  | 'admin:perfil'            // somente proprietario
+  | 'admin:perfil:acessos'    // sub-aba de acessos dentro de Perfil
 
 // ── Item de navegação na sidebar ─────────────────────────────
 export interface NavItem {
@@ -32,6 +33,23 @@ export interface UserProfile {
   telefone?:  string
   avatarUrl?: string
   createdAt?: string
+}
+
+// ── Credencial de acesso (profiles_credencial) ───────────────
+export interface UserCredencial {
+  profileId:    string
+  email:        string
+  ativo:        boolean
+  ultimoAcesso: string | null
+  criadoPor:    string | null
+  updatedAt:    string
+}
+
+// ── Usuário com credencial (join profiles + profiles_credencial) ──
+export interface UsuarioCompleto extends UserProfile {
+  ativo:        boolean
+  ultimoAcesso: string | null
+  criadoPor:    string | null
 }
 
 // ── Status de matrícula ───────────────────────────────────────
@@ -54,9 +72,9 @@ export interface Aula {
   instrutorId: string
   local:       string
   nivel:       string
-  inicio:      string   // ex: '09:00'
-  fim:         string   // ex: '10:30'
-  data:        string   // ex: '2026-07-30'
+  inicio:      string
+  fim:         string
+  data:        string
   vagasLivres: number
   total:       number
   inscritos:   Inscrito[]
@@ -64,10 +82,10 @@ export interface Aula {
 
 // ── Inscrito em aula ──────────────────────────────────────────
 export interface Inscrito {
-  id:        string
-  nome:      string
-  presente:  boolean
-  saude?:    string   // descrição da condição de saúde, se houver
+  id:       string
+  nome:     string
+  presente: boolean
+  saude?:   string
 }
 
 // ── Plano de matrícula ────────────────────────────────────────
@@ -76,7 +94,7 @@ export interface Plano {
   nome:       string
   valor:      number
   maxModal:   number
-  fidelidade: number   // meses (0 = sem fidelidade)
+  fidelidade: number
 }
 
 // ── Treino cadastrado pelo professor ─────────────────────────
@@ -100,8 +118,8 @@ export interface Transacao {
   categoria: string
   descricao: string
   valor:     number
-  data:      string   // ISO date
-  mes:       string   // primeiro dia do mês (para agrupamento)
+  data:      string
+  mes:       string
 }
 
 // ── Pagamento do professor ────────────────────────────────────
@@ -110,7 +128,7 @@ export interface PagamentoProfessor {
   professorId: string
   aulaId:      string
   presencas:   number
-  valor:       number   // calcValorAula(presencas)
+  valor:       number
   pago:        boolean
   mes:         string
 }

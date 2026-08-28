@@ -44,19 +44,16 @@ export async function middleware(request: NextRequest) {
   const requiredPermission = getRoutePermission(pathname)
 
   if (requiredPermission && !hasPermission(role, requiredPermission)) {
-    // Usuário autenticado mas sem permissão → redirecionar para a home do role
     return NextResponse.redirect(new URL(ROLE_HOME[role], request.url))
   }
 
-  // ── Usuário admin tentando acessar rota de outro modo ─────
+  // ── Proteção por modo de acesso ───────────────────────────
   if (pathname.startsWith('/pages/admin') && !isAdminRole(role)) {
     return NextResponse.redirect(new URL(ROLE_HOME[role], request.url))
   }
-
   if (pathname.startsWith('/pages/professor') && role !== 'professor') {
     return NextResponse.redirect(new URL(ROLE_HOME[role], request.url))
   }
-
   if (pathname.startsWith('/pages/aluno') && role !== 'aluno') {
     return NextResponse.redirect(new URL(ROLE_HOME[role], request.url))
   }
@@ -64,15 +61,8 @@ export async function middleware(request: NextRequest) {
   return supabaseResponse
 }
 
-// Configuração: quais rotas o middleware intercepta
 export const config = {
   matcher: [
-    /*
-     * Intercepta todas as rotas EXCETO:
-     * - _next/static (arquivos estáticos do Next.js)
-     * - _next/image (otimização de imagens)
-     * - favicon.ico, ícones e arquivos de manifesto
-     */
     '/((?!_next/static|_next/image|favicon.ico|icons/|manifest.json|sw.js).*)',
   ],
 }

@@ -9,8 +9,9 @@ import { cookies } from 'next/headers'
 import type { Database } from '@/types/database'
 
 /**
- * Cria um cliente Supabase com acesso ao cookie store do Next.js.
+ * Cria um cliente Supabase com a anon key.
  * Use em Server Components, layouts e Server Actions.
+ * Este cliente respeita o RLS — só enxerga o que as policies permitem.
  */
 export async function createClient() {
   const cookieStore = await cookies()
@@ -29,7 +30,7 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             )
           } catch {
-            // setAll pode ser chamado de um Server Component — ignorar o erro.
+            // Pode ser chamado em Server Component — ignorar.
             // O middleware garante que a sessão seja atualizada.
           }
         },
@@ -39,8 +40,42 @@ export async function createClient() {
 }
 
 /**
+ * Cria um cliente Supabase com a service_role key (permissão total).
+ * Use APENAS em Server Actions que exigem operações administrativas,
+ * como criar usuários no Auth. NUNCA exponha no browser.
+ */
+export async function createAdminClient() {
+  const cookieStore = await cookies()
+
+  return createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch { /* ignorar */ }
+        },
+      },
+      auth: {
+        // Desabilita persistência de sessão para o cliente admin
+        // Ele usa a service_role e não deve criar cookies de sessão.
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    }
+  )
+}
+
+/**
  * Busca o perfil completo do usuário autenticado.
- * Retorna null se não houver sessão ativa.
+ * Retorna null se não houver sessão ativa ou se o perfil não existir.
  */
 export async function getProfile() {
   const supabase = await createClient()
