@@ -1,28 +1,28 @@
 import type { Metadata, Viewport } from 'next'
-import { Poppins, Inter } from 'next/font/google'
+import { Montserrat_Alternates, Shadows_Into_Light_Two } from 'next/font/google'
 import './globals.css'
 
-const poppins = Poppins({
+const montserrat = Montserrat_Alternates({
   subsets: ['latin'],
-  weight: ['700', '800'],
-  variable: '--font-poppins',
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-montserrat',
   display: 'swap',
 })
 
-const inter = Inter({
+const shadows = Shadows_Into_Light_Two({
   subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  variable: '--font-inter',
+  weight: ['400'],
+  variable: '--font-shadows',
   display: 'swap',
 })
 
 export const metadata: Metadata = {
   title: 'Andorin Estúdio',
-  description: 'Sistema de gestão da Andorin Estúdio',
+  description: 'Andorin - Divirta-se com saúde e arte circense', // Dê asas aos seus sonhos através do Circo.
 }
 
 export const viewport: Viewport = {
-  themeColor: '#2D1B69',
+  themeColor: '#F27406',
   width: 'device-width',
   initialScale: 1,
 }
@@ -33,8 +33,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="pt-BR" className={`${poppins.variable} ${inter.variable} h-full`}>
-      <body className="min-h-full font-inter bg-gray-bg text-gray-dark antialiased">
+    <html lang="pt-BR" className={`${montserrat.variable} ${shadows.variable} h-full`}>
+      <body className="min-h-full font-montserrat brand-off-white antialiased">
         {children}
       </body>
     </html>

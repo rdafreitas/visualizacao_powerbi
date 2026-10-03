@@ -1,5 +1,13 @@
-import { redirect } from 'next/navigation'
+import { LoginRight } from '@/components/login/LoginRigth'
+import { LoginForm } from '@/components/login/LoginForm'
 
-export default function Home() {
-  redirect('/pages/login')
+export const metadata = { title: 'Andorin Estúdio' }
+
+export default function LoginPage() {
+  return (
+    <div className="min-h-screen flex">
+      <LoginForm />
+      <LoginRight />
+    </div>
+  )
 }

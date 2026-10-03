@@ -29,11 +29,14 @@ export function LoginForm() {
   }
 
   return (
-    <div className="w-[480px] flex-shrink-0 bg-white flex flex-col justify-center px-12 py-16">
-      <h2 className="font-poppins text-2xl font-extrabold text-gray-dark mb-1">
-        Acessar plataforma
+    <div className="w-[40%] flex-shrink-0 brand-off-white flex flex-col justify-center px-8 py-16">
+      <h2 className="font-montserrat text-2xl font-extrabold mb-1">
+        Acesse seu Andorin
       </h2>
-      <p className="text-sm text-gray-mid mb-8">
+      <p className="font-shadows italic text-xs text-chumbo mb-12">
+        Venha bater suas asas dentro da mundo mágico do Circo.
+      </p>
+      <p className="text-sm text-gray-mid mb-3">
         Entre com seu e-mail e senha cadastrados.
       </p>
 
@@ -71,9 +74,9 @@ export function LoginForm() {
           fullWidth
           loading={loading}
           className="mt-2"
-          style={{ background: 'linear-gradient(135deg, #2D1B69, #3D2A85)' }}
+          variant="primary"
         >
-          {loading ? 'Entrando…' : 'Entrar na plataforma'}
+          {loading ? 'Entrando…' : 'Entrar'}
         </Button>
       </form>
 

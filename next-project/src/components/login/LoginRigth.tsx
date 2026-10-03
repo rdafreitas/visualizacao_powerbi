@@ -4,7 +4,7 @@ const STATS = [
   { valor: '7',  label: 'Aulas hoje'    },
 ]
 
-export function LoginLeft() {
+export function LoginRight() {
   return (
     <div
       className="flex-1 relative flex flex-col items-center justify-center px-12 py-16 overflow-hidden"

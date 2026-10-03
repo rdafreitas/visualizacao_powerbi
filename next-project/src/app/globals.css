@@ -1,27 +1,47 @@
 @import "tailwindcss";
 
 @theme {
-  --color-purple:       #2D1B69;
-  --color-purple-light: #3D2A85;
-  --color-red:          #EF476F;
-  --color-gray-bg:      #F4F4F8;
-  --color-gray-mid:     #9B9BB4;
-  --color-gray-dark:    #1A1A2E;
-  --font-poppins: 'Poppins', sans-serif;
-  --font-inter: 'Inter', sans-serif;
+  --color-bordo:        #7A1D2C;
+  --color-orange:       #f27406;
+  --color-blue-light:   #BAD0D9;
+  --color-green-light:  #BFD6A1;
+  --color-off-white:    #F4E7CE;
+  --color-chumbo:       #211D1C;
+  --font-montserrat:    'Montserrat Alternates', sans-serif;
+  --font-shadows:       'Shadows Into Light Two', cursive;
 }
 
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@utility brand-bordo {
+  background-color: var(--color-bordo);
+  color: var(--color-blue-light);
 }
+@utility brand-orange {
+  background-color: var(--color-orange);
+  color: var(--color-green-light);
+}
+@utility brand-blue-light {
+  background-color: var(--color-blue-light);
+  color: var(--color-orange);
+}
+@utility brand-green-light {
+  background-color: var(--color-green-light);
+  color: var(--color-bordo);
+}
+@utility brand-off-white {
+  background-color: var(--color-off-white);
+  color: var(--color-orange);
+}
+@utility brand-chumbo {
+  background-color: var(--color-chumbo);
+  color: var(--color-blue-light);
+}
+
 
 html, body {
   height: 100%;
-  font-family: var(--font-inter);
-  background-color: var(--color-gray-bg);
-  color: var(--color-gray-dark);
+  font-family: var(--font-montserrat);
+  background-color: var(--color-off-white);
+  color: var(--color-bordo);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
