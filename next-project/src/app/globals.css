@@ -11,6 +11,14 @@
   --font-shadows:       'Shadows Into Light Two', cursive;
 }
 
+@utility brand-oficial-bordo {
+  background-color: var(--color-bordo);
+  color: var(--color-off-white);
+}
+@utility brand-oficial-off-white {
+  background-color: var(--color-off-white);
+  color: var(--color-bordo);
+}
 @utility brand-bordo {
   background-color: var(--color-bordo);
   color: var(--color-blue-light);

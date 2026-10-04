@@ -1,8 +1,8 @@
-import { getProfile } from '@/lib/supabase/server'
+//import { getProfile } from '@/lib/supabase/server'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { Card, CardTitle } from '@/components/ui/Card'
+//import { Card, CardTitle } from '@/components/ui/Card'
 
-export const metadata = { title: 'Início — PaVoar Admin' }
+export const metadata = { title: 'Início — Andorin Admin' }
 
 const METRICS = [
   { icon: '👥', value: '84',      label: 'Alunos Ativos',  delta: '↑ +6 este mês',   color: 'text-green-dk' },
@@ -25,17 +25,17 @@ const QUICK = [
   { icon: '📅', label: 'Agenda',     href: '/pages/admin/agenda'       },
 ]
 
-export default async function AdminHomePage() {
-  const profile = await getProfile()
+export default /*async*/ function AdminHomePage() {
+  //const profile = await getProfile()
 
   return (
     <>
       <PageHeader
         title="Visão Geral 👑"
-        subtitle={`Bem-vindo, ${profile?.nome ?? ''}. Quarta-feira, 30 de julho de 2026.`}
+        //subtitle={`Bem-vindo, ${profile?.nome ?? ''}. Quarta-feira, 30 de julho de 2026.`}
       />
 
-      {/* Métricas */}
+      {/* Métricas 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
         {METRICS.map((m) => (
           <Card key={m.label}>
@@ -45,9 +45,9 @@ export default async function AdminHomePage() {
             <p className={`text-xs font-semibold mt-2 ${m.color}`}>{m.delta}</p>
           </Card>
         ))}
-      </div>
+      </div>*/}
 
-      {/* Feed + Acesso Rápido */}
+      {/* Feed + Acesso Rápido 
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-5">
         <Card>
           <CardTitle>Atividade Recente</CardTitle>
@@ -76,7 +76,7 @@ export default async function AdminHomePage() {
             ))}
           </div>
         </Card>
-      </div>
+      </div>*/} 
     </>
   )
 }

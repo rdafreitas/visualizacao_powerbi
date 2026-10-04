@@ -3,7 +3,7 @@
 import { cn } from '@/lib/utils'
 import type { ButtonHTMLAttributes } from 'react'
 
-type Variant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline'
+type Variant = 'var_aluno' | 'secondary_aluno' | 'danger' | 'ghost' | 'outline'
 type Size    = 'sm' | 'md' | 'lg'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -14,8 +14,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const VARIANT_CLASSES: Record<Variant, string> = {
-  primary:   'brand-orange hover:brand-blue-light shadow-sm hover:shadow-md',
-  secondary: 'bg-gray-bg text-gray-dark hover:bg-white border border-gray-mid/30',
+  var_aluno:   'brand-oficial-bordo hover:brand-orange shadow-sm hover:shadow-md',
+  secondary_aluno: 'bg-gray-bg text-gray-dark hover:bg-white border border-gray-mid/30',
   danger:    'bg-red/10 text-red hover:bg-red hover:text-white border border-red/20',
   ghost:     'bg-transparent text-gray-dark hover:bg-gray-bg',
   outline:   'bg-white text-purple border border-purple/20 hover:border-purple hover:bg-purple/5',
@@ -28,7 +28,7 @@ const SIZE_CLASSES: Record<Size, string> = {
 }
 
 export function Button({
-  variant = 'primary',
+  variant = 'var_aluno',
   size = 'md',
   loading = false,
   fullWidth = false,
