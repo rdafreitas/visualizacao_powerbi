@@ -29,14 +29,12 @@ export function LoginForm() {
   }
 
   return (
-    <div className="w-[40%] flex-shrink-0 brand-oficial-off-white flex flex-col justify-center px-8 py-16">
-      <h2 className="font-montserrat text-2xl font-extrabold mb-1">
-        Acesse seu Andorin
+    <div className="w-[40%] flex-shrink-0 brand-oficial-off-white flex flex-col justify-center px-12 py-16">
+      <h2 className="text-2xl font-extrabold text-bordo mb-1"
+        style={{ fontFamily: 'var(--font-montserrat)' }}>
+        Acessar plataforma
       </h2>
-      <p className="font-shadows text-xs text-chumbo mb-12">
-        Venha bater suas asas dentro da mundo mágico do Circo.
-      </p>
-      <p className="text-sm text-gray-mid mb-3">
+      <p className="text-sm text-gray-mid mb-8">
         Entre com seu e-mail e senha cadastrados.
       </p>
 
@@ -63,18 +61,29 @@ export function LoginForm() {
         />
 
         {erro && (
-          <p className="text-xs text-red font-semibold bg-red/8 border border-red/20 rounded-xl px-4 py-3">
+          <p className="text-xs font-semibold rounded-xl px-4 py-3"
+            style={{
+              color:      '#8B2318',
+              background: 'rgba(192,57,43,.08)',
+              border:     '1px solid rgba(192,57,43,.2)',
+            }}>
             {erro}
           </p>
         )}
 
         <Button
           type="submit"
+          variant="primary"
           size="lg"
           fullWidth
           loading={loading}
           className="mt-2"
-          variant="var_aluno"
+          style={{
+            background: 'linear-gradient(135deg, #7A1D2C, #f27406)',
+            boxShadow:  '0 8px 20px rgba(122,29,44,.30)',
+            color:      '#F4E7CE',
+            fontFamily: 'var(--font-montserrat)',
+          }}
         >
           {loading ? 'Entrando…' : 'Entrar'}
         </Button>

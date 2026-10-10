@@ -7,20 +7,21 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 
 const PADDING = {
   none: 'p-0',
-  sm:   'p-4 sm',
+  sm:   'p-4',
   md:   'p-5 sm:p-6',
   lg:   'p-6 sm:p-8',
 }
 
-export function Card({ 
-  padding = 'sm', 
-  className, 
-  children, ...props 
+export function Card({
+  padding = 'md',
+  className,
+  children,
+  ...props
 }: CardProps) {
   return (
     <div
       className={cn(
-        'bg-bordo/[0.4] rounded-2xl border border-black/[0.04] shadow-sm',
+        'bg-white rounded-2xl border border-black/[0.04] shadow-sm',
         PADDING[padding],
         className
       )}
@@ -38,7 +39,7 @@ export function CardTitle({
 }: HTMLAttributes<HTMLParagraphElement>) {
   return (
     <p
-      className={cn('font-montserrat text-sm font-bold text-chumbo mb-4', className)}
+      className={cn('text-sm font-bold text-gray-dark mb-4', className)}
       {...props}
     >
       {children}
