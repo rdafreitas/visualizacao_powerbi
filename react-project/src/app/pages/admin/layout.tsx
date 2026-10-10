@@ -1,24 +1,32 @@
-//import { redirect } from 'next/navigation'
-//import { getProfile } from '@/lib/supabase/server'
-//import { isAdminRole, ROLE_HOME } from '@/lib/permissions'
+// ─────────────────────────────────────────────────────────────
+// src/app/pages/admin/layout.tsx
+// Layout do modo Admin — brand-orange.
+// Topbar colorida + Sidebar #fef3e8 + Main #fef8f2 (admin-main)
+// ─────────────────────────────────────────────────────────────
+
+import { redirect } from 'next/navigation'
+import { getProfile } from '@/lib/supabase/server'
+import { isAdminRole, ROLE_HOME } from '@/lib/permissions'
 import { Topbar } from '@/components/layout/Topbar'
 import { Sidebar } from '@/components/layout/Sidebar'
 
-export default /*async*/ function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  //const profile = await getProfile()
-  //if (!profile)             redirect('/pages/login')
-  //if (!isAdminRole(profile.role)) redirect(ROLE_HOME[profile.role])
+  const profile = await getProfile()
+
+  if (!profile)                   redirect('/pages/login')
+  if (!isAdminRole(profile.role)) redirect(ROLE_HOME[profile.role])
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Topbar />
+      <Topbar user={profile} />
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
-        <main className="flex-1 p-9 overflow-y-auto min-w-0 bg-gray-bg">
+        <Sidebar role={profile.role} />
+        {/* Fundo admin-main definido em globals.css */}
+        <main className="admin-main flex-1 p-9 overflow-y-auto min-w-0">
           {children}
         </main>
       </div>

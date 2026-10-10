@@ -1,31 +1,31 @@
 import type { Metadata, Viewport } from 'next'
-import { Poppins, Inter } from 'next/font/google'
+import { Montserrat_Alternates, Shadows_Into_Light_Two } from 'next/font/google'
 import './globals.css'
 
 // ── Fontes ────────────────────────────────────────────────────
-const poppins = Poppins({
-  subsets: ['latin'],
-  weight: ['700', '800'],
-  variable: '--font-poppins',
-  display: 'swap',
+const montserrat = Montserrat_Alternates({
+  subsets:  ['latin'],
+  weight:   ['400', '500', '600', '700', '800'],
+  variable: '--font-montserrat',
+  display:  'swap',
 })
 
-const inter = Inter({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  variable: '--font-inter',
-  display: 'swap',
+const shadows = Shadows_Into_Light_Two({
+  subsets:  ['latin'],
+  weight:   ['400'],
+  variable: '--font-shadows',
+  display:  'swap',
 })
 
 // ── Metadata ─────────────────────────────────────────────────
 export const metadata: Metadata = {
-  title: 'PaVoar Academia Circense',
+  title:       'PaVoar Academia Circense',
   description: 'Sistema de gestão da PaVoar Academia Circense',
-  manifest: '/manifest.json',
+  manifest:    '/manifest.json',
   appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'PaVoar',
+    capable:         true,
+    statusBarStyle:  'default',
+    title:           'PaVoar',
   },
   icons: {
     apple: '/icons/icon-192.png',
@@ -33,8 +33,8 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#2D1B69',
-  width: 'device-width',
+  themeColor:   '#7A1D2C',
+  width:        'device-width',
   initialScale: 1,
 }
 
@@ -47,9 +47,9 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${poppins.variable} ${inter.variable} h-full`}
+      className={`${montserrat.variable} ${shadows.variable} h-full`}
     >
-      <body className="min-h-full font-inter bg-gray-bg text-gray-dark antialiased">
+      <body className="min-h-full font-montserrat bg-gray-bg text-gray-dark antialiased">
         {children}
       </body>
     </html>

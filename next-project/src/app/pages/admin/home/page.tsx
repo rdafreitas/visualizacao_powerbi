@@ -5,10 +5,10 @@ import { Card, CardTitle } from '@/components/ui/Card'
 export const metadata = { title: 'Início — Andorin Admin' }
 
 const METRICS = [
-  { icon: '👥', value: '84',      label: 'Alunos Ativos',  delta: '↑ +6 este mês',   color: 'text-green-dk' },
-  { icon: '💰', value: 'R$18,2k', label: 'Receita Julho',  delta: '↑ +12% vs junho', color: 'text-green-dk' },
-  { icon: '📅', value: '7',       label: 'Aulas Hoje',     delta: '3 restantes',      color: 'text-gray-mid' },
-  { icon: '⚠️', value: '5',       label: 'Inadimplentes',  delta: 'Requer atenção',   color: 'text-red'      },
+  { value: '84',      label: 'Alunos Ativos',  delta: '↑ +6 este mês',   color: 'text-green-dk' },
+  { value: 'R$18,2k', label: 'Receita Julho',  delta: '↑ +12% vs junho', color: 'text-green-dk' },
+  { value: '7',       label: 'Aulas Hoje',     delta: '3 restantes',      color: 'text-gray-mid' },
+  { value: '5',       label: 'Inadimplentes',  delta: 'Requer atenção',   color: 'text-red'      },
 ]
 
 const FEED = [
@@ -31,8 +31,9 @@ export default /*async*/ function AdminHomePage() {
   return (
     <>
       <PageHeader
-        title="Visão Geral 👑"
+        title="Visão Geral"
         //subtitle={`Bem-vindo, ${profile?.nome ?? ''}. Quarta-feira, 30 de julho de 2026.`}
+        subtitle={`Bem-vindo, Renan D'Alexandro.`}
       />
 
       {/* Métricas */}

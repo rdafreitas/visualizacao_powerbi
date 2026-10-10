@@ -1,8 +1,8 @@
 'use client'
 // ─────────────────────────────────────────────────────────────
 // LoginForm.tsx
-// Formulário de login. Client Component pois gerencia estado
-// local de campos e loading, e chama o Supabase Auth do browser.
+// Paleta: bordo (#7A1D2C) → orange (#f27406)
+// Fonte: Montserrat Alternates
 // ─────────────────────────────────────────────────────────────
 
 import { useState } from 'react'
@@ -27,7 +27,6 @@ export function LoginForm() {
     setLoading(true)
 
     try {
-      // 1. Autentica no Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: senha,
@@ -38,7 +37,6 @@ export function LoginForm() {
         return
       }
 
-      // 2. Busca o perfil (role) na tabela profiles
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
@@ -51,8 +49,6 @@ export function LoginForm() {
         return
       }
 
-      // 3. Verifica se o acesso está ativo em profiles_credencial
-      //    Isso permite bloquear o login de um usuário sem excluí-lo.
       const { data: credencial } = await supabase
         .from('profiles_credencial')
         .select('ativo')
@@ -65,7 +61,6 @@ export function LoginForm() {
         return
       }
 
-      // 4. Redireciona para a home do role
       router.push(ROLE_HOME[profile.role as Role])
       router.refresh()
 
@@ -78,7 +73,9 @@ export function LoginForm() {
 
   return (
     <div className="w-[480px] flex-shrink-0 bg-white flex flex-col justify-center px-12 py-16">
-      <h2 className="font-poppins text-2xl font-extrabold text-gray-dark mb-1">
+      {/* Título com fonte principal */}
+      <h2 className="text-2xl font-extrabold text-chumbo mb-1"
+        style={{ fontFamily: 'var(--font-montserrat)' }}>
         Acessar plataforma
       </h2>
       <p className="text-sm text-gray-mid mb-8">
@@ -108,7 +105,12 @@ export function LoginForm() {
         />
 
         {erro && (
-          <p className="text-xs text-red font-semibold bg-red/8 border border-red/20 rounded-xl px-4 py-3">
+          <p className="text-xs font-semibold rounded-xl px-4 py-3"
+            style={{
+              color: '#8B2318',
+              background: 'rgba(192,57,43,.08)',
+              border: '1px solid rgba(192,57,43,.2)',
+            }}>
             {erro}
           </p>
         )}
@@ -119,7 +121,12 @@ export function LoginForm() {
           fullWidth
           loading={loading}
           className="mt-2"
-          style={{ background: 'linear-gradient(135deg, #2D1B69, #3D2A85)' }}
+          style={{
+            background:  'linear-gradient(135deg, #7A1D2C, #f27406)',
+            boxShadow:   '0 8px 20px rgba(122,29,44,.30)',
+            color:       '#F4E7CE',
+            fontFamily:  'var(--font-montserrat)',
+          }}
         >
           {loading ? 'Entrando…' : 'Entrar na plataforma'}
         </Button>

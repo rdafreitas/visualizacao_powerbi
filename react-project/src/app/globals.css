@@ -2,33 +2,60 @@
 
 /* ── Tokens de cor PaVoar ───────────────────────────────────── */
 @theme {
-  /* Primária */
-  --color-purple:       #2D1B69;
-  --color-purple-light: #3D2A85;
+  /* Paleta PaVoar */
+  --color-bordo:         #7A1D2C;
+  --color-bordo-dk:      #5a1520;
+  --color-orange:        #f27406;
+  --color-orange-dk:     #d96604;
+  --color-blue-light:    #BAD0D9;
+  --color-green-light:   #BFD6A1;
+  --color-off-white:     #F4E7CE;
+  --color-chumbo:        #211D1C;
+  --color-chumbo-light:  #3a3330;
 
-  /* Destaque */
-  --color-orange:       #FF6B35;
-  --color-orange-dk:    #FF4500;
-
-  /* Admin / conquistas */
-  --color-gold:         #FFD166;
-  --color-gold-dk:      #e6a800;
-
-  /* Professor / sucesso */
-  --color-green:        #06D6A0;
-  --color-green-dk:     #04956E;
-
-  /* Alertas / erros */
-  --color-red:          #EF476F;
-
-  /* Neutros */
-  --color-gray-bg:      #F4F4F8;
-  --color-gray-mid:     #9B9BB4;
-  --color-gray-dark:    #1A1A2E;
+  /* Legados mapeados para facilitar classes utilitárias */
+  --color-red:           #C0392B;
+  --color-gray-bg:       #f5f0e8;
+  --color-gray-mid:      #8a7d70;
+  --color-gray-dark:     #211D1C;
 
   /* Fontes */
-  --font-poppins: 'Poppins', sans-serif;
-  --font-inter:   'Inter', sans-serif;
+  --font-montserrat: 'Montserrat Alternates', sans-serif;
+  --font-shadows:    'Shadows Into Light Two', cursive;
+}
+
+/* ── Utilidades de marca ────────────────────────────────────── */
+@utility brand-oficial-bordo {
+  background-color: var(--color-bordo);
+  color: var(--color-off-white);
+}
+@utility brand-oficial-off-white {
+  background-color: var(--color-off-white);
+  color: var(--color-bordo);
+}
+@utility brand-bordo {
+  background-color: var(--color-bordo);
+  color: var(--color-blue-light);
+}
+@utility brand-orange {
+  background-color: var(--color-orange);
+  color: var(--color-green-light);
+}
+@utility brand-blue-light {
+  background-color: var(--color-blue-light);
+  color: var(--color-orange);
+}
+@utility brand-green-light {
+  background-color: var(--color-green-light);
+  color: var(--color-bordo);
+}
+@utility brand-off-white {
+  background-color: var(--color-off-white);
+  color: var(--color-orange);
+}
+@utility brand-chumbo {
+  background-color: var(--color-chumbo);
+  color: var(--color-blue-light);
 }
 
 /* ── Reset e base ───────────────────────────────────────────── */
@@ -41,14 +68,14 @@
 html,
 body {
   height: 100%;
-  font-family: 'Inter', sans-serif;
-  background-color: #F4F4F8;
-  color: #1A1A2E;
+  font-family: 'Montserrat Alternates', sans-serif;
+  background-color: #f5f0e8;
+  color: #211D1C;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Utilitários de scroll ──────────────────────────────────── */
+/* ── Scrollbar fina ─────────────────────────────────────────── */
 .scrollbar-none {
   scrollbar-width: none;
 }
@@ -56,34 +83,25 @@ body {
   display: none;
 }
 
+::-webkit-scrollbar          { width: 5px; height: 5px; }
+::-webkit-scrollbar-track    { background: transparent; }
+::-webkit-scrollbar-thumb    { background: rgba(122,29,44,.2); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(122,29,44,.4); }
+
 /* ── Animação do modal ──────────────────────────────────────── */
 @keyframes modalIn {
-  from {
-    opacity: 0;
-    transform: scale(0.96) translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+  from { opacity: 0; transform: scale(0.96) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
-
 .animate-modal-in {
   animation: modalIn 0.25s ease forwards;
 }
 
 /* ── Animação do toast ──────────────────────────────────────── */
 @keyframes toastIn {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
-
 .animate-toast-in {
   animation: toastIn 0.3s ease forwards;
 }
@@ -93,11 +111,10 @@ body {
   position: absolute;
   cursor: pointer;
   inset: 0;
-  background: #D0D0E0;
+  background: #c8bcb0;
   border-radius: 9999px;
   transition: background 0.3s;
 }
-
 .toggle-slider::before {
   content: '';
   position: absolute;
@@ -110,11 +127,40 @@ body {
   transition: transform 0.3s;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
+input:checked + .toggle-slider            { background: #7A1D2C; }
+input:checked + .toggle-slider::before   { transform: translateX(18px); }
 
-input:checked + .toggle-slider {
-  background: #2D1B69;
+/* ── Fundos por modo (aplicados via className no layout) ─────── */
+
+/* Admin — brand-orange: creme alaranjado */
+.admin-main {
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(242,116,6,.07) 0%, transparent 55%),
+    radial-gradient(ellipse at 100% 100%, rgba(242,116,6,.05) 0%, transparent 50%),
+    #fef8f2;
 }
+.admin-sidebar-bg {
+  background: #fef3e8;
+  border-right-color: rgba(242,116,6,.12) !important;
+}
+.admin-sidebar-bg .nav-item-link:hover  { background: rgba(242,116,6,.07); }
+.admin-sidebar-bg .nav-item-link.active { background: rgba(242,116,6,.10); }
 
-input:checked + .toggle-slider::before {
-  transform: translateX(18px);
+/* Professor — brand-chumbo: cinza quente */
+.prof-main {
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(33,29,28,.05) 0%, transparent 55%),
+    radial-gradient(ellipse at 100% 100%, rgba(186,208,217,.12) 0%, transparent 50%),
+    #f4f2f0;
+}
+.prof-sidebar-bg {
+  background: #f0edeb;
+  border-right-color: rgba(33,29,28,.10) !important;
+}
+.prof-sidebar-bg .nav-item-link:hover  { background: rgba(33,29,28,.06); }
+.prof-sidebar-bg .nav-item-link.active { background: rgba(33,29,28,.08); }
+
+/* Aluno — brand-oficial-bordo: off-white cálido (padrão) */
+.aluno-main {
+  background: #f5f0e8;
 }

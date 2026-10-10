@@ -8,13 +8,26 @@ export type Role = 'proprietario' | 'funcionario' | 'professor' | 'aluno'
 
 // ── Permissões granulares ─────────────────────────────────────
 export type Permission =
+  // Admin
   | 'admin:home'
   | 'admin:alunos'
   | 'admin:agenda'
   | 'admin:professores'
-  | 'admin:financeiro'        // somente proprietario
-  | 'admin:perfil'            // somente proprietario
-  | 'admin:perfil:acessos'    // sub-aba de acessos dentro de Perfil
+  | 'admin:financeiro'
+  | 'admin:perfil'
+  | 'admin:perfil:acessos'
+  // Professor
+  | 'professor:home'
+  | 'professor:treinos'
+  | 'professor:agenda'
+  | 'professor:pagamentos'
+  | 'professor:perfil'
+  // Aluno
+  | 'aluno:home'
+  | 'aluno:evolucao'
+  | 'aluno:agenda'
+  | 'aluno:pagamentos'
+  | 'aluno:perfil'
 
 // ── Item de navegação na sidebar ─────────────────────────────
 export interface NavItem {
@@ -131,4 +144,49 @@ export interface PagamentoProfessor {
   valor:       number
   pago:        boolean
   mes:         string
+}
+
+// ── Aviso para professor (painel inicial) ─────────────────────
+export type AvisoTipo = 'pagamento' | 'treino' | 'urgente' | 'saude' | 'trial'
+
+export interface Aviso {
+  id:    string
+  tipo:  AvisoTipo
+  titulo: string
+  corpo?: string
+  badge?: string
+}
+
+// ── XP e nível do aluno ───────────────────────────────────────
+export interface XPData {
+  total:        number
+  nivel:        number
+  nomeNivel:    string
+  emoji:        string
+  xpParaProx:   number
+  aulas:        number
+  presenca:     number   // 0-100
+  mediaAval:    number   // 0-5
+}
+
+// ── Habilidade do aluno ───────────────────────────────────────
+export interface Habilidade {
+  id:       string
+  emoji:    string
+  nome:     string
+  modal:    string   // modalidade
+  nivel:    number   // 1-5
+  nova:     boolean
+  descricao?: string
+}
+
+// ── Histórico de aula do aluno ────────────────────────────────
+export interface HistoricoAula {
+  id:        string
+  emoji:     string
+  nome:      string
+  data:      string
+  presente:  boolean
+  habilidades: string[]
+  avaliacao?: number   // estrelas 1-5
 }

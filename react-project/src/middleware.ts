@@ -15,6 +15,8 @@ import {
   getRoutePermission,
   hasPermission,
   isAdminRole,
+  isProfessorRole,
+  isAlunoRole,
 } from '@/lib/permissions'
 import { PUBLIC_ROUTES } from '@/lib/constants'
 
@@ -47,15 +49,27 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(ROLE_HOME[role], request.url))
   }
 
-  // ── Proteção por modo de acesso ───────────────────────────
-  if (pathname.startsWith('/pages/admin') && !isAdminRole(role)) {
-    return NextResponse.redirect(new URL(ROLE_HOME[role], request.url))
+  // ── Isolamento de modo: impedir acesso entre modos ────────
+
+  // Admin tentando acessar modo professor ou aluno
+  if (isAdminRole(role)) {
+    if (pathname.startsWith('/pages/professor') || pathname.startsWith('/pages/aluno')) {
+      return NextResponse.redirect(new URL(ROLE_HOME[role], request.url))
+    }
   }
-  if (pathname.startsWith('/pages/professor') && role !== 'professor') {
-    return NextResponse.redirect(new URL(ROLE_HOME[role], request.url))
+
+  // Professor tentando acessar modo admin ou aluno
+  if (isProfessorRole(role)) {
+    if (pathname.startsWith('/pages/admin') || pathname.startsWith('/pages/aluno')) {
+      return NextResponse.redirect(new URL(ROLE_HOME[role], request.url))
+    }
   }
-  if (pathname.startsWith('/pages/aluno') && role !== 'aluno') {
-    return NextResponse.redirect(new URL(ROLE_HOME[role], request.url))
+
+  // Aluno tentando acessar modo admin ou professor
+  if (isAlunoRole(role)) {
+    if (pathname.startsWith('/pages/admin') || pathname.startsWith('/pages/professor')) {
+      return NextResponse.redirect(new URL(ROLE_HOME[role], request.url))
+    }
   }
 
   return supabaseResponse

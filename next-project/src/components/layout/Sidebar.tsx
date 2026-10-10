@@ -6,11 +6,19 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 //import type { Permission, Role } from '@/types/app'
 
+type Variant = 'var_admin' | 'var_aluno' | 'var_professor'
+
 interface NavItem {
   label:      string
   href:       string
   //permission: Permission
   icon:       string
+}
+
+const VARIANT_CLASSES: Record<Variant, string> = {
+  var_admin:     'brand-oficial-off-white border-r border-black/[0.07]',
+  var_aluno:     'bg-off-white border-r border-bordo/15',
+  var_professor: 'brand-chumbo border-r border-blue-light',
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -52,19 +60,28 @@ const NAV_ITEMS: NavItem[] = [
   },
 ]
 
-// interface SidebarProps {
-//   role: Role
-// }
+interface SidebarProps {
+  //role: Role
+  variant?: Variant
+}
 
-export function Sidebar(/*{ role }: SidebarProps*/) {
+export function Sidebar({
+  /*{ role }: SidebarProps*/
+  variant = 'var_admin',
+}: SidebarProps) {
   const pathname = usePathname()
   //const allowed  = PERMISSIONS[role] as Permission[]
   const visible  = NAV_ITEMS//.filter((item) => allowed.includes(item.permission))
 
   return (
-    <aside className="w-60 bg-white border-r border-black/[0.07] flex flex-col py-6 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto flex-shrink-0">
-      <p className="text-[10px] font-bold text-gray-mid uppercase tracking-[1.5px] px-5 mb-2">
-        Menu principal
+    <aside
+      className={cn(
+        'w-50 flex flex-col py-6 self-stretch overflow-y-auto flex-shrink-0',
+        VARIANT_CLASSES[variant]
+      )}
+    >
+      <p className="text-[14px] font-extrabold text-gray-mid tracking-[1.5px] px-5 mb-2">
+        Menu Principal
       </p>
 
       <nav className="flex flex-col">

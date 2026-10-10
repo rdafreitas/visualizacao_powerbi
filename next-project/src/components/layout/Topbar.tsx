@@ -26,7 +26,7 @@ export function Topbar(/*{ user }: TopbarProps*/) {
   //}
 
   return (
-    <header className="h-16 bg-white border-b border-black/[0.07] flex items-center gap-5 px-8 sticky top-0 z-[100] shadow-sm flex-shrink-0">
+    <header className="h-16 brand-oficial-bordo border-b border-black/[0.07] flex items-center gap-5 px-8 sticky top-0 z-[100] shadow-sm flex-shrink-0">
       {/* Logo */}
       <a
         href="#"
