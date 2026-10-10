@@ -1,12 +1,14 @@
+import { LoginForm }  from '@/components/login/LoginForm'
 import { LoginRight } from '@/components/login/LoginRigth'
-import { LoginForm } from '@/components/login/LoginForm'
 
-export const metadata = { title: 'Andorin Estúdio' }
+export const metadata = { title: 'Login — Estúdio Andorin' }
 
 export default function LoginPage() {
   return (
     <div className="min-h-screen flex">
+      {/* Formulário à esquerda */}
       <LoginForm />
+      {/* Painel visual à direita */}
       <LoginRight />
     </div>
   )
