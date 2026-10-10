@@ -1,16 +1,30 @@
 @import "tailwindcss";
 
+/* ── Tokens de cor ───────────────────────────────────────────── */
 @theme {
-  --color-bordo:        #7A1D2C;
-  --color-orange:       #f27406;
-  --color-blue-light:   #BAD0D9;
-  --color-green-light:  #BFD6A1;
-  --color-off-white:    #F4E7CE;
-  --color-chumbo:       #211D1C;
-  --font-montserrat:    'Montserrat Alternates', sans-serif;
-  --font-shadows:       'Shadows Into Light Two', cursive;
+  /* Paleta principal */
+  --color-bordo:         #7A1D2C;
+  --color-bordo-dk:      #5a1520;
+  --color-orange:        #f27406;
+  --color-orange-dk:     #d96604;
+  --color-blue-light:    #BAD0D9;
+  --color-green-light:   #BFD6A1;
+  --color-off-white:     #F4E7CE;
+  --color-chumbo:        #211D1C;
+  --color-chumbo-light:  #3a3330;
+
+  /* Cinzas e estados */
+  --color-red:           #C0392B;
+  --color-gray-bg:       #f5f0e8;
+  --color-gray-mid:      #8a7d70;
+  --color-gray-dark:     #211D1C;
+
+  /* Fontes */
+  --font-montserrat: 'Montserrat Alternates', sans-serif;
+  --font-shadows:    'Shadows Into Light Two', cursive;
 }
 
+/* ── Utilitários de marca ─────────────────────────────────────── */
 @utility brand-oficial-bordo {
   background-color: var(--color-bordo);
   color: var(--color-off-white);
@@ -44,12 +58,95 @@
   color: var(--color-blue-light);
 }
 
+/* ── Reset base ───────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 html, body {
   height: 100%;
   font-family: var(--font-montserrat);
-  background-color: var(--color-off-white);
-  color: var(--color-bordo);
+  background-color: var(--color-gray-bg);
+  color: var(--color-gray-dark);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scrollbar fina ───────────────────────────────────────────── */
+.scrollbar-none { scrollbar-width: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
+
+::-webkit-scrollbar          { width: 5px; height: 5px; }
+::-webkit-scrollbar-track    { background: transparent; }
+::-webkit-scrollbar-thumb    { background: rgba(122,29,44,.2); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(122,29,44,.4); }
+
+/* ── Animações ────────────────────────────────────────────────── */
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-modal-in {
+  animation: modalIn 0.25s ease forwards;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.animate-toast-in {
+  animation: toastIn 0.3s ease forwards;
+}
+
+/* ── Toggle switch ────────────────────────────────────────────── */
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #c8bcb0;
+  border-radius: 9999px;
+  transition: background 0.3s;
+}
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  left: 3px;
+  bottom: 3px;
+  transition: transform 0.3s;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+input:checked + .toggle-slider            { background: var(--color-bordo); }
+input:checked + .toggle-slider::before   { transform: translateX(18px); }
+
+/* ── Fundos por role ──────────────────────────────────────────── */
+.admin-main {
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(242,116,6,.07) 0%, transparent 55%),
+    radial-gradient(ellipse at 100% 100%, rgba(242,116,6,.05) 0%, transparent 50%),
+    #fef8f2;
+}
+.admin-sidebar-bg {
+  background: #fef3e8;
+  border-right-color: rgba(242,116,6,.12) !important;
+}
+
+.prof-main {
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(33,29,28,.05) 0%, transparent 55%),
+    radial-gradient(ellipse at 100% 100%, rgba(186,208,217,.12) 0%, transparent 50%),
+    #f4f2f0;
+}
+.prof-sidebar-bg {
+  background: #f0edeb;
+  border-right-color: rgba(33,29,28,.10) !important;
+}
+
+.aluno-main {
+  background: var(--color-gray-bg);
 }
