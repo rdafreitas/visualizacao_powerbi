@@ -1,6 +1,6 @@
-import { PageHeader }    from '@/components/layout/PageHeader'
-import { Card }           from '@/components/ui/Card'
-import { AcessosClient }  from '@/components/admin/perfil/AcessosClient'
+import { PageHeader }   from '@/components/layout/PageHeader'
+import { Card }          from '@/components/ui/Card'
+import { AcessosClient } from '../AcessosClient'
 
 export const metadata = { title: 'Acessos — Andorin Admin' }
 

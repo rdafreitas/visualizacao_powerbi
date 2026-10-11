@@ -1,6 +1,7 @@
 'use client'
 // ─────────────────────────────────────────────────────────────
 // TabelaAcessos — versão FRONT-END ESTÁTICO
+// Movido para app/pages/admin/perfil/.
 // Dados demo hardcoded. Ações simuladas (console.log).
 // Quando o back-end for integrado:
 //   1. Receber usuarios e meuId como props reais
@@ -10,14 +11,13 @@
 
 import { useState } from 'react'
 import { Table, Thead, Th, Tbody, Tr, Td } from '@/components/ui/Table'
-import { Badge } from '@/components/ui/Badge'
+import { Badge }  from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Modal } from '@/components/ui/Modal'
-import { Input } from '@/components/ui/Input'
-import { Toast } from '@/components/ui/Toast'
+import { Modal }  from '@/components/ui/Modal'
+import { Input }  from '@/components/ui/Input'
+import { Toast }  from '@/components/ui/Toast'
 import { iniciais, avatarColorByName } from '@/lib/utils'
 
-// ── Tipo local (sem importar de @/types/app) ──────────────────
 export interface UsuarioRow {
   id:           string
   nome:         string
@@ -29,7 +29,6 @@ export interface UsuarioRow {
   createdAt:    string
 }
 
-// ── Labels por role (sem importar de permissions) ─────────────
 const ROLE_LABELS: Record<UsuarioRow['role'], string> = {
   proprietario: '👑 Proprietário',
   funcionario:  '🏢 Funcionário',
@@ -59,7 +58,6 @@ export function TabelaAcessos({ usuarios, meuId, onRefresh }: Props) {
 
   function showMsg(msg: string) { setToast(msg); setShowToast(true) }
 
-  // Demo: simula ação sem chamar Supabase
   function handleToggleAtivo(u: UsuarioRow) {
     console.log('[demo] toggle ativo:', u.nome, !u.ativo)
     showMsg(u.ativo ? `Acesso de ${u.nome} desativado.` : `Acesso de ${u.nome} ativado.`)
@@ -102,7 +100,6 @@ export function TabelaAcessos({ usuarios, meuId, onRefresh }: Props) {
         <Tbody>
           {usuarios.map((u) => (
             <Tr key={u.id}>
-              {/* Avatar + nome */}
               <Td>
                 <div className="flex items-center gap-3">
                   <div
@@ -117,13 +114,10 @@ export function TabelaAcessos({ usuarios, meuId, onRefresh }: Props) {
                   </div>
                 </div>
               </Td>
-
               <Td className="text-gray-mid">{u.email}</Td>
-
               <Td>
                 <Badge variant={u.role}>{ROLE_LABELS[u.role]}</Badge>
               </Td>
-
               <Td>
                 <span className={[
                   'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold',
@@ -133,27 +127,19 @@ export function TabelaAcessos({ usuarios, meuId, onRefresh }: Props) {
                   {u.ativo ? 'Ativo' : 'Bloqueado'}
                 </span>
               </Td>
-
               <Td className="text-gray-mid text-sm">{formatDate(u.ultimoAcesso)}</Td>
               <Td className="text-gray-mid text-sm">{formatDate(u.createdAt)}</Td>
-
               <Td>
                 <div className="flex items-center justify-end gap-2">
                   {u.id !== meuId && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => { setModalSenha(u); setNovaSenha(''); setErrSenha('') }}
-                    >
+                    <Button size="sm" variant="outline"
+                      onClick={() => { setModalSenha(u); setNovaSenha(''); setErrSenha('') }}>
                       🔑 Senha
                     </Button>
                   )}
                   {u.id !== meuId && (
-                    <Button
-                      size="sm"
-                      variant={u.ativo ? 'danger' : 'secondary'}
-                      onClick={() => handleToggleAtivo(u)}
-                    >
+                    <Button size="sm" variant={u.ativo ? 'danger' : 'secondary'}
+                      onClick={() => handleToggleAtivo(u)}>
                       {u.ativo ? 'Bloquear' : 'Ativar'}
                     </Button>
                   )}
@@ -167,7 +153,6 @@ export function TabelaAcessos({ usuarios, meuId, onRefresh }: Props) {
         </Tbody>
       </Table>
 
-      {/* Modal: redefinir senha */}
       <Modal
         open={!!modalSenha}
         onClose={() => setModalSenha(null)}

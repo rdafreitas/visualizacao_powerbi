@@ -1,52 +1,54 @@
 'use client'
 
 // ─────────────────────────────────────────────────────────────
-// Topbar — versão FRONT-END ESTÁTICO (sem Supabase / sem props)
-// Dados de demonstração hardcoded para validação visual.
+// Topbar — versão FRONT-END ESTÁTICO
+// Recebe role como prop de cada layout — sem Supabase.
 // Quando o back-end for integrado:
-//   1. Descomentar a interface TopbarProps
-//   2. Adicionar { user }: TopbarProps como parâmetro
-//   3. Substituir DEMO_USER por user
-//   4. Restaurar handleLogout com Supabase
+//   1. Adicionar user: UserProfile à interface TopbarProps
+//   2. Substituir DEMO_USER por user
+//   3. Restaurar handleLogout com Supabase
 // ─────────────────────────────────────────────────────────────
 
 import { iniciais } from '@/lib/utils'
 
-// ── Dados de demonstração ─────────────────────────────────────
+type Role = 'admin' | 'professor' | 'aluno'
+
+interface TopbarProps {
+  role: Role
+}
+
+// Dados demo do usuário — substituir por getProfile() no backend
 const DEMO_USER = {
   nome:  "Renan D'Alexandro",
   email: 'renan@andorin.com.br',
-  role:  'admin', // troque para 'professor' ou 'aluno' para ver os outros visuais
 }
 
-// ── Gradientes e sombras por role ────────────────────────────
-const TOPBAR_GRADIENT: Record<string, string> = {
+const TOPBAR_GRADIENT: Record<Role, string> = {
   admin:     'linear-gradient(90deg, #c45e00, #f27406)',
   professor: 'linear-gradient(90deg, #211D1C, #3a3330)',
   aluno:     'linear-gradient(90deg, #5a1520, #7A1D2C)',
 }
 
-const TOPBAR_SHADOW: Record<string, string> = {
+const TOPBAR_SHADOW: Record<Role, string> = {
   admin:     '0 2px 16px rgba(242,116,6,.3)',
   professor: '0 2px 16px rgba(33,29,28,.35)',
   aluno:     '0 2px 16px rgba(122,29,44,.35)',
 }
 
-const ROLE_LABEL: Record<string, string> = {
+const ROLE_LABEL: Record<Role, string> = {
   admin:     '🏠 Administrador',
   professor: '🎓 Professor',
   aluno:     '🎪 Aluno',
 }
 
-export function Topbar() {
-  const user     = DEMO_USER
-  const gradient = TOPBAR_GRADIENT[user.role] ?? TOPBAR_GRADIENT.admin
-  const shadow   = TOPBAR_SHADOW[user.role]   ?? TOPBAR_SHADOW.admin
-  const label    = ROLE_LABEL[user.role]       ?? ''
+export function Topbar({ role }: TopbarProps) {
+  const gradient = TOPBAR_GRADIENT[role]
+  const shadow   = TOPBAR_SHADOW[role]
+  const label    = ROLE_LABEL[role]
 
   return (
     <header
-      className="h-16 flex items-center gap-5 px-8 sticky top-0 z-[100] flex-shrink-0"
+      className="h-16 flex items-center gap-5 px-8 flex-shrink-0 z-[100]"
       style={{ background: gradient, boxShadow: shadow }}
     >
       {/* Logo */}
@@ -72,27 +74,23 @@ export function Topbar() {
 
       {/* Usuário + Sair */}
       <div className="flex items-center gap-3">
-
-        {/* Avatar com iniciais */}
         <div
           className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-extrabold flex-shrink-0"
           style={{ background: 'rgba(255,255,255,.22)', color: '#F4E7CE' }}
-          aria-label={`Avatar de ${user.nome}`}
+          aria-label={`Avatar de ${DEMO_USER.nome}`}
         >
-          {iniciais(user.nome)}
+          {iniciais(DEMO_USER.nome)}
         </div>
 
-        {/* Nome e e-mail */}
         <div className="hidden sm:block">
           <p className="text-sm font-semibold leading-none" style={{ color: '#F4E7CE' }}>
-            {user.nome}
+            {DEMO_USER.nome}
           </p>
           <p className="text-[11px] mt-0.5" style={{ color: 'rgba(244,231,206,.65)' }}>
-            {user.email}
+            {DEMO_USER.email}
           </p>
         </div>
 
-        {/* Botão Sair — sem ação por enquanto */}
         <button
           className="px-4 py-1.5 text-xs font-semibold rounded-xl ml-1 transition-all"
           style={{

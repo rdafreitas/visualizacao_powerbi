@@ -1,14 +1,5 @@
 'use client'
 
-// ─────────────────────────────────────────────────────────────
-// Sidebar Admin — versão FRONT-END ESTÁTICO (sem permissions)
-// Visual: fundo laranja suave, accent laranja.
-// Quando o back-end for integrado:
-//   1. Importar PERMISSIONS e Role
-//   2. Receber role como prop
-//   3. Filtrar NAV_ITEMS por allowed.includes(item.permission)
-// ─────────────────────────────────────────────────────────────
-
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -28,7 +19,7 @@ export function Sidebar() {
 
   return (
     <aside
-      className="w-60 flex flex-col py-6 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto flex-shrink-0"
+      className="w-60 flex flex-col py-6 flex-shrink-0 h-full overflow-y-auto"
       style={{
         background:  '#fef3e8',
         borderRight: '1px solid rgba(242,116,6,.14)',

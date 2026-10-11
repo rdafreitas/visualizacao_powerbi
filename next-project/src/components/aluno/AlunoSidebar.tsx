@@ -1,20 +1,14 @@
 'use client'
 
-// ─────────────────────────────────────────────────────────────
-// AlunoSidebar — versão FRONT-END ESTÁTICO
-// Visual: fundo branco, accent bordô, Agenda com destaque gradiente.
-// Sem props de role ou permissions — 100% estático para validação visual.
-// ─────────────────────────────────────────────────────────────
-
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const NAV_ITEMS = [
-  { label: 'Início',     href: '/pages/aluno/home',       icon: '🏠',  fab: false },
-  { label: 'Evolução',   href: '/pages/aluno/evolucao',   icon: '🌟',  fab: false },
-  { label: 'Agenda',     href: '/pages/aluno/agenda',     icon: '📅',  fab: true  },
-  { label: 'Pagamentos', href: '/pages/aluno/pagamentos', icon: '💳',  fab: false },
-  { label: 'Perfil',     href: '/pages/aluno/perfil',     icon: '👤',  fab: false },
+  { label: 'Início',     href: '/pages/aluno/home',       icon: '🏠', fab: false },
+  { label: 'Evolução',   href: '/pages/aluno/evolucao',   icon: '🌟', fab: false },
+  { label: 'Agenda',     href: '/pages/aluno/agenda',     icon: '📅', fab: false },
+  { label: 'Pagamentos', href: '/pages/aluno/pagamentos', icon: '💳', fab: false },
+  { label: 'Perfil',     href: '/pages/aluno/perfil',     icon: '👤', fab: false },
 ]
 
 const ACCENT = '#7A1D2C'
@@ -24,7 +18,7 @@ export function AlunoSidebar() {
 
   return (
     <aside
-      className="w-60 bg-white flex flex-col py-6 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto flex-shrink-0"
+      className="w-60 bg-white flex flex-col py-6 flex-shrink-0 h-full overflow-y-auto"
       style={{ borderRight: '1px solid rgba(122,29,44,.10)' }}
     >
       <p
@@ -40,7 +34,6 @@ export function AlunoSidebar() {
             pathname === item.href ||
             pathname.startsWith(item.href + '/')
 
-          // Item FAB — Agenda com gradiente bordô
           if (item.fab) {
             return (
               <div key={item.href} className="px-3 my-1">

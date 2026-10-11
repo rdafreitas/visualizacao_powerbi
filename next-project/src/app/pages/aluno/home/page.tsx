@@ -51,7 +51,7 @@ export default function AlunoHomePage() {
           <CardTitle>Minhas aulas esta semana</CardTitle>
           <div className="flex flex-col gap-3">
             {AULAS_SEMANA.map((a) => (
-              <div key={a.sub} className="flex items-center gap-4 bg-gray-bg rounded-xl p-3.5">
+              <div key={`${a.dia}-${a.num}`} className="flex items-center gap-4 bg-gray-bg rounded-xl p-3.5">
                 <div className="text-center flex-shrink-0 w-10">
                   <p className="text-[10px] font-bold text-gray-mid uppercase">{a.dia}</p>
                   <p className="text-xl font-extrabold text-gray-dark leading-none"

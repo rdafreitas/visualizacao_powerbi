@@ -1,6 +1,7 @@
 'use client'
 // ─────────────────────────────────────────────────────────────
 // FormCadastroUsuario — versão FRONT-END ESTÁTICO
+// Movido para app/pages/admin/perfil/.
 // Ação de cadastro simulada (console.log).
 // Quando o back-end for integrado:
 //   1. Importar cadastrarUsuario de '@/lib/actions/usuarios'
@@ -9,18 +10,17 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState } from 'react'
-import { Input }   from '@/components/ui/Input'
-import { Button }  from '@/components/ui/Button'
-import { Modal }   from '@/components/ui/Modal'
+import { Input }  from '@/components/ui/Input'
+import { Button } from '@/components/ui/Button'
+import { Modal }  from '@/components/ui/Modal'
 
-// Roles locais (sem importar de @/types/app)
 type Role = 'proprietario' | 'funcionario' | 'professor' | 'aluno'
 
 const ROLES: { value: Role; label: string; desc: string }[] = [
-  { value: 'aluno',        label: '🤸 Aluno',        desc: 'Acessa agenda e seu perfil'      },
-  { value: 'professor',    label: '🎭 Professor',    desc: 'Gerencia turmas e treinos'       },
-  { value: 'funcionario',  label: '🏢 Funcionário',  desc: 'Acesso admin sem financeiro'     },
-  { value: 'proprietario', label: '👑 Proprietário', desc: 'Acesso total ao sistema'         },
+  { value: 'aluno',        label: '🤸 Aluno',        desc: 'Acessa agenda e seu perfil'  },
+  { value: 'professor',    label: '🎭 Professor',    desc: 'Gerencia turmas e treinos'   },
+  { value: 'funcionario',  label: '🏢 Funcionário',  desc: 'Acesso admin sem financeiro' },
+  { value: 'proprietario', label: '👑 Proprietário', desc: 'Acesso total ao sistema'     },
 ]
 
 interface Props {
@@ -30,13 +30,13 @@ interface Props {
 }
 
 export function FormCadastroUsuario({ open, onClose, onSave }: Props) {
-  const [nome,     setNome]    = useState('')
-  const [email,    setEmail]   = useState('')
-  const [senha,    setSenha]   = useState('')
-  const [telefone, setTelefone]= useState('')
-  const [role,     setRole]    = useState<Role>('aluno')
-  const [loading,  setLoading] = useState(false)
-  const [erro,     setErro]    = useState('')
+  const [nome,     setNome]     = useState('')
+  const [email,    setEmail]    = useState('')
+  const [senha,    setSenha]    = useState('')
+  const [telefone, setTelefone] = useState('')
+  const [role,     setRole]     = useState<Role>('aluno')
+  const [loading,  setLoading]  = useState(false)
+  const [erro,     setErro]     = useState('')
 
   function resetForm() {
     setNome(''); setEmail(''); setSenha('')
@@ -53,7 +53,6 @@ export function FormCadastroUsuario({ open, onClose, onSave }: Props) {
     if (senha.length < 6)     return setErro('Senha deve ter no mínimo 6 caracteres.')
 
     setLoading(true)
-    // Demo: simula delay de network sem chamar Supabase
     await new Promise((r) => setTimeout(r, 800))
     console.log('[demo] cadastrar usuário:', { nome, email, role, telefone })
     setLoading(false)
@@ -76,7 +75,6 @@ export function FormCadastroUsuario({ open, onClose, onSave }: Props) {
       }
     >
       <div className="flex flex-col gap-4">
-        {/* Seleção de role */}
         <div>
           <p className="text-xs font-bold text-gray-mid uppercase tracking-wide mb-2">
             Tipo de acesso

@@ -1,11 +1,5 @@
 'use client'
 
-// ─────────────────────────────────────────────────────────────
-// ProfessorSidebar — versão FRONT-END ESTÁTICO
-// Visual: fundo chumbo claro (#f0edeb), accent chumbo escuro.
-// Sem props de role ou permissions — 100% estático para validação visual.
-// ─────────────────────────────────────────────────────────────
-
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -24,7 +18,7 @@ export function ProfessorSidebar() {
 
   return (
     <aside
-      className="w-60 flex flex-col py-6 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto flex-shrink-0"
+      className="w-60 flex flex-col py-6 flex-shrink-0 h-full overflow-y-auto"
       style={{
         background:  '#f0edeb',
         borderRight: '1px solid rgba(33,29,28,.12)',
