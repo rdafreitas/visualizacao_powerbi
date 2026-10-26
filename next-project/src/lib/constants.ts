@@ -4,9 +4,6 @@
 // ─────────────────────────────────────────────────────────────
 
 // ── Paleta Andorin ────────────────────────────────────────────
-// Referência JS para uso em gráficos e componentes que recebem
-// cor como prop (ex: recharts, chart.js). As classes Tailwind
-// (text-bordo, bg-orange, etc.) são controladas pelo globals.css.
 export const COLORS = {
   bordo:       '#7A1D2C',
   bordoDk:     '#5a1520',
@@ -19,7 +16,6 @@ export const COLORS = {
   chumboLight: '#3a3330',
 } as const
 
-// Cores de avatar para professores conhecidos
 export const PROF_AVATAR_COLORS: Record<string, string> = {
   'Camila Rocha': '#BFD6A1',
   'Diego Mendes': '#7A1D2C',
@@ -28,20 +24,14 @@ export const PROF_AVATAR_COLORS: Record<string, string> = {
 }
 
 // ── Regras de negócio ─────────────────────────────────────────
+export const VALOR_AULA_BAIXO    = 30   // R$ — menos de 3 presenças
+export const VALOR_AULA_ALTO     = 50   // R$ — 3 ou mais presenças
+export const THRESHOLD_PRESENCAS = 3    // mínimo para valor alto
 
-/** Valor pago ao professor por aula com menos de 3 presenças */
-export const VALOR_AULA_BAIXO = 30
-
-/** Valor pago ao professor por aula com 3 ou mais presenças */
-export const VALOR_AULA_ALTO = 50
-
-/** Threshold de presenças para aplicar o valor mais alto */
-export const THRESHOLD_PRESENCAS = 3
-
-// ── Meses com movimentação financeira (demo) ──────────────────
+// ── Meses com movimentação (demo) ─────────────────────────────
 export const MESES_COM_MOVIMENTO: Record<number, number[]> = {
-  2025: [7, 8, 9, 10, 11],          // ago–dez 2025
-  2026: [0, 1, 2, 3, 4, 5, 6],     // jan–jul 2026
+  2025: [7, 8, 9, 10, 11],
+  2026: [0, 1, 2, 3, 4, 5, 6],
 }
 
 // ── Modalidades ───────────────────────────────────────────────
@@ -52,46 +42,47 @@ export const MODALIDADES = [
   'Contorcionismo',
   'Condicionamento',
 ] as const
-
 export type Modalidade = (typeof MODALIDADES)[number]
 
-// ── Planos ────────────────────────────────────────────────────
+// ── Planos (demo) ──────────────────────────────────────────────
 export const PLANOS_DEMO = [
-  { nome: 'Básico',    valor: 180, maxModal: 1, fidelidade: 3 },
-  { nome: 'Completo',  valor: 280, maxModal: 2, fidelidade: 0 },
-  { nome: 'Premium',   valor: 480, maxModal: 5, fidelidade: 0 },
+  { nome: 'Básico',   valor: 180, maxModal: 1, fidelidade: 3 },
+  { nome: 'Completo', valor: 280, maxModal: 2, fidelidade: 0 },
+  { nome: 'Premium',  valor: 480, maxModal: 5, fidelidade: 0 },
 ] as const
 
-// ── Valências de treino ───────────────────────────────────────
+// ── Valências / grupos musculares / níveis ────────────────────
 export const VALENCIAS = [
   'Força', 'Flexibilidade', 'Equilíbrio',
   'Resistência', 'Criatividade', 'Coordenação',
   'Agilidade', 'Expressividade',
 ] as const
 
-// ── Grupos musculares ─────────────────────────────────────────
 export const GRUPOS_MUSCULARES = [
   'Core', 'Braços', 'Pernas', 'Ombros', 'Costas', 'Glúteos',
 ] as const
 
-// ── Níveis de dificuldade ─────────────────────────────────────
 export const NIVEIS = ['Iniciante', 'Intermediário', 'Avançado', 'Todos'] as const
 
-// ── Chave PIX ─────────────────────────────────────────────────
+// ── Locais e contato ──────────────────────────────────────────
 export const CHAVE_PIX = 'pagamentos@andorin.com.br'
 
-// ── Locais das aulas ──────────────────────────────────────────
 export const LOCAIS_AULA = [
-  'Studio A',
-  'Studio B',
-  'Sala Principal',
-  'Área Externa',
+  'Studio A', 'Studio B', 'Sala Principal', 'Área Externa',
 ] as const
 
-// ── Rotas públicas (não exigem autenticação) ──────────────────
-export const PUBLIC_ROUTES = ['/pages/login'] as const
+// ── Roteamento ────────────────────────────────────────────────
+// PUBLIC_ROUTES: rotas que não exigem autenticação.
+// O login vive em src/app/page.tsx → URL é '/' (raiz do site).
+// Não existe /pages/login neste projeto.
+export const PUBLIC_ROUTES = ['/'] as const
 
-// ── Gráfico financeiro: séries de dados (demo 6 meses) ───────
+// LOGIN_ROUTE: destino dos redirects quando não há sessão.
+// Centralizado aqui para que uma eventual mudança de rota
+// do login (ex: mover para /entrar) afete apenas esta linha.
+export const LOGIN_ROUTE = '/' as const
+
+// ── Gráficos financeiros (demo 6 meses) ───────────────────────
 export const MESES_FIN_LABELS = ['Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul']
 
 export const FIN_DADOS_TODOS = {
@@ -106,9 +97,9 @@ export const FIN_DADOS_CONTRATOS = {
 }
 
 export const FIN_DADOS_PAGAMENTO = {
-  PIX:    [8100, 8200, 8300, 9000,  9400,  10580],
-  Cartão: [4900, 5000, 5000, 5200,  5700,  6200],
-  Boleto: [1250, 1480, 1080, 1060,  1200,  1460],
+  PIX:    [8100, 8200, 8300,  9000,  9400, 10580],
+  Cartão: [4900, 5000, 5000,  5200,  5700,  6200],
+  Boleto: [1250, 1480, 1080,  1060,  1200,  1460],
 }
 
 export const FIN_DADOS_DESPESAS = {
@@ -117,8 +108,8 @@ export const FIN_DADOS_DESPESAS = {
 }
 
 export const FIN_DADOS_LUCROS = {
-  Caixa:        [2274, 2464, 2284, 2420, 2664, 2944],
-  Investimento: [1137, 1232, 1152, 1210, 1320, 1472],
+  Caixa:        [2274, 2464, 2284, 2420, 2664,  2944],
+  Investimento: [1137, 1232, 1152, 1210, 1320,  1472],
   Sócios:       [8259, 8948, 8368, 8810, 9376, 10304],
 }
 
@@ -129,14 +120,7 @@ export const FIN_DADOS_FOLHA: Record<string, number[]> = {
   'Ana Lima':     [1300, 1400, 1400, 1400, 1400, 1400],
 }
 
-// Cores para as séries do gráfico — paleta Andorin
 export const CHART_COLORS = [
-  '#7A1D2C',
-  '#f27406',
-  '#BAD0D9',
-  '#BFD6A1',
-  '#F4E7CE',
-  '#5a1520',
-  '#d96604',
-  '#211D1C',
+  '#7A1D2C', '#f27406', '#BAD0D9', '#BFD6A1',
+  '#F4E7CE', '#5a1520', '#d96604', '#211D1C',
 ]

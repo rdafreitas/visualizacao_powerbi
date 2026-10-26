@@ -1,30 +1,28 @@
-// ─────────────────────────────────────────────────────────────
 // src/lib/supabase/client.ts
 //
-// Cliente Supabase para uso em Client Components (browser).
+// Cliente Supabase para Client Components (browser).
 //
-// POR QUE existe um cliente separado para o browser?
-// O Next.js tem três ambientes de execução:
-//   1. Browser (Client Components)
-//   2. Servidor Node.js (Server Components, Server Actions)
-//   3. Middleware (Edge Runtime)
+// REGRA DE USO:
+//   Importe apenas em arquivos com 'use client'.
+//   Nunca em Server Components, layouts ou middleware.
 //
-// Cada ambiente acessa cookies de uma forma diferente.
-// Este arquivo usa createBrowserClient, que lê e grava cookies
-// diretamente no documento do browser via document.cookie.
+// SOBRE A ANON KEY NO BROWSER:
+//   NEXT_PUBLIC_SUPABASE_ANON_KEY aparece no bundle JavaScript
+//   enviado ao browser — isso é intencional e documentado pelo
+//   Supabase. Ela não é um segredo: identifica o projeto, mas
+//   não concede acesso a dados. O RLS (Row Level Security) no
+//   banco PostgreSQL é o que controla quem acessa o quê.
+//   Referência: https://supabase.com/docs/guides/auth/server-side/nextjs
 //
-// REGRA: importe este arquivo apenas em arquivos com 'use client'.
-// Nunca em Server Components, layouts ou middleware.
-// ─────────────────────────────────────────────────────────────
+// SOBRE O SINGLETON:
+//   createBrowserClient é memoizado internamente — chamadas
+//   múltiplas retornam a mesma instância, evitando conexões
+//   duplicadas e re-renderizações desnecessárias.
 
 import { createBrowserClient } from '@supabase/ssr'
 import type { Database } from '@/types/database'
 
 export function createClient() {
-  // As variáveis NEXT_PUBLIC_* são embutidas no bundle do browser
-  // pelo Next.js em tempo de build. São públicas por design —
-  // a anon key identifica o projeto mas não é um segredo:
-  // o RLS no banco é o que protege os dados, não esta chave.
   return createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,

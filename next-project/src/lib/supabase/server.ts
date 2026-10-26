@@ -1,27 +1,39 @@
-// ─────────────────────────────────────────────────────────────
 // src/lib/supabase/server.ts
 //
-// Clientes Supabase para Server Components e Server Actions.
+// Cliente Supabase com anon key para o ambiente de servidor Node.js.
 //
-// POR QUE é diferente do client.ts?
-// No servidor, o Next.js expõe cookies via a função cookies()
-// do pacote 'next/headers'. Essa API não existe no browser.
-// createServerClient lê e grava a sessão usando esse cookieStore.
+// REGRA DE USO:
+//   Importe em Server Components, layouts e arquivos 'use server'.
+//   Nunca em Client Components ('use client').
+//   Nunca em src/middleware.ts (use lib/supabase/middleware.ts).
 //
-// REGRA: importe este arquivo apenas em Server Components,
-// layouts de servidor e arquivos 'use server'.
-// Nunca em Client Components ('use client').
-// ─────────────────────────────────────────────────────────────
+// RESPONSABILIDADE ÚNICA:
+//   Este arquivo cria apenas o cliente base com a anon key.
+//   Ele respeita o RLS — só retorna dados que as policies permitem
+//   para o usuário autenticado na sessão atual.
+//
+//   Para operações privilegiadas (service_role): use lib/supabase/admin.ts
+//   Para buscar o perfil do usuário:             use (auth)/session.ts
+//
+// POR QUE cookies() é diferente do browser?
+//   No servidor Node.js, cookies são gerenciados pelo Next.js via
+//   a função cookies() do pacote 'next/headers'. Essa API não existe
+//   no browser. O @supabase/ssr abstrai essa diferença com a
+//   interface { getAll, setAll } que passamos aqui.
+//
+// O bloco try/catch em setAll:
+//   Server Components são somente leitura — eles não podem gravar
+//   cookies. Se createClient() for chamado de um Server Component
+//   (e não de uma Server Action), o setAll lançaria uma exceção ao
+//   tentar gravar. O try/catch suprime esse erro silenciosamente.
+//   O middleware garante que os cookies de sessão sejam renovados
+//   a cada requisição, então o Server Component não precisa fazer isso.
+//   Referência: https://supabase.com/docs/guides/auth/server-side/nextjs
 
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import type { Database } from '@/types/database'
 
-// ── Cliente com anon key ──────────────────────────────────────
-// Respeita o RLS — enxerga apenas o que as policies permitem
-// para o usuário autenticado na sessão atual.
-// Use em Server Components e Server Actions que não precisam
-// de permissão elevada.
 export async function createClient() {
   const cookieStore = await cookies()
 
@@ -39,89 +51,11 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             )
           } catch {
-            // Server Components não podem gravar cookies diretamente.
-            // Quando chamado de um Server Component (não de uma Action),
-            // este bloco é ignorado. O middleware garante que a sessão
-            // permaneça atualizada entre requisições.
+            // Chamado de Server Component — ignorar.
+            // O middleware renova a sessão entre requisições.
           }
         },
       },
     }
   )
-}
-
-// ── Cliente com service_role key ──────────────────────────────
-// BYPASSA completamente o RLS — acesso total ao banco.
-// Use APENAS em Server Actions que exigem operações administrativas:
-//   - criar usuários no Auth (auth.admin.createUser)
-//   - operações que precisam de dados protegidos por RLS
-//
-// NUNCA use em Client Components. A variável SUPABASE_SERVICE_ROLE_KEY
-// não tem prefixo NEXT_PUBLIC_ por isso — ela nunca vai ao browser.
-export async function createAdminClient() {
-  const cookieStore = await cookies()
-
-  return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            )
-          } catch { /* ignorar */ }
-        },
-      },
-      auth: {
-        // O cliente admin não deve persistir sessão nem renovar tokens.
-        // Ele usa a service_role estática, não um token de usuário.
-        persistSession:   false,
-        autoRefreshToken: false,
-      },
-    }
-  )
-}
-
-// ── getProfile — busca o perfil do usuário autenticado ────────
-// Retorna null se não houver sessão ativa ou se o profile
-// não existir (usuário criado no Auth mas sem registro em profiles).
-//
-// Uso típico no início de Server Actions para verificar autenticação:
-//   const profile = await getProfile()
-//   if (!profile) return { ok: false, error: 'Sessão expirada.' }
-export async function getProfile() {
-  const supabase = await createClient()
-
-  // getUser() verifica o token JWT com o servidor Supabase.
-  // Mais seguro que decodificar o token localmente (que pode estar stale).
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-
-  if (authError || !user) return null
-
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('id, nome, role, telefone, avatar_url, xp_total, created_at')
-    .eq('id', user.id)
-    .single()
-
-  if (profileError || !profile) return null
-
-  return {
-    id:        profile.id,
-    nome:      profile.nome,
-    email:     user.email ?? '',
-    role:      profile.role as import('@/types/app').Role,
-    xpTotal:   profile.xp_total,
-    telefone:  profile.telefone  ?? undefined,
-    avatarUrl: profile.avatar_url ?? undefined,
-    createdAt: profile.created_at,
-  }
 }
