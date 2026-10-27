@@ -11,6 +11,8 @@
 // Após criar as tabelas no Supabase (Fase 1), substitua este
 // arquivo pelo output gerado automaticamente — ele será mais
 // preciso e incluirá views e funções.
+// Relationships declara apenas as relações tipadas usadas pelas consultas
+// atuais. As listas vazias não são um inventário das FKs existentes no banco.
 //
 // ESTRUTURA de cada tabela:
 //   Row    — tipo de uma linha retornada por SELECT
@@ -35,6 +37,7 @@ export interface Database {
       // O id é o mesmo UUID do auth.users — criado pelo trigger
       // handle_new_user ao registrar um usuário no Auth.
       profiles: {
+        Relationships: []
         Row: {
           id:         string
           nome:       string
@@ -68,6 +71,13 @@ export interface Database {
       // Separa identidade (profiles) de credenciais de login.
       // A SENHA nunca fica aqui — vive no auth.users (hash bcrypt).
       profiles_credencial: {
+        Relationships: [{
+          foreignKeyName: 'profiles_credencial_profile_id_fkey'
+          columns: ['profile_id']
+          isOneToOne: true
+          referencedRelation: 'profiles'
+          referencedColumns: ['id']
+        }]
         Row: {
           profile_id:    string
           email:         string
@@ -96,6 +106,7 @@ export interface Database {
       // ── planos ──────────────────────────────────────────────
       // Catálogo de planos de matrícula.
       planos: {
+        Relationships: []
         Row: {
           id:         string
           nome:       string
@@ -125,6 +136,7 @@ export interface Database {
       // Liga aluno a plano. Armazena apenas IDs do ASAAS —
       // nunca dados de cartão (responsabilidade do ASAAS/PCI-DSS).
       matriculas: {
+        Relationships: []
         Row: {
           id:                    string
           aluno_id:              string
@@ -157,6 +169,7 @@ export interface Database {
       // Agrupa aulas recorrentes do mesmo tipo com o mesmo professor.
       // Uma turma gera N instâncias de `aulas` ao longo do tempo.
       turmas: {
+        Relationships: []
         Row: {
           id:             string
           nome:           string
@@ -197,6 +210,7 @@ export interface Database {
       // Instância específica de uma aula em uma data/hora concretos.
       // O campo `nivel` foi removido — vive em aula_habilidade.
       aulas: {
+        Relationships: []
         Row: {
           id:                  string
           turma_id:            string | null
@@ -243,6 +257,7 @@ export interface Database {
       // ── habilidades ─────────────────────────────────────────
       // Catálogo de habilidades da academia (Tecido, Acrobacia...).
       habilidades: {
+        Relationships: []
         Row: {
           id:         string
           nome:       string
@@ -269,6 +284,7 @@ export interface Database {
       // Vínculo entre aula e habilidade + nível (1–5).
       // Uma aula pode trabalhar uma habilidade em um nível específico.
       aula_habilidade: {
+        Relationships: []
         Row: {
           id:            string
           aula_id:       string
@@ -290,6 +306,7 @@ export interface Database {
       // Aluno inscrito em aula. UNIQUE (aula_id, aluno_id)
       // impede inscrição dupla.
       inscricoes: {
+        Relationships: []
         Row: {
           id:             string
           aula_id:        string
@@ -317,6 +334,7 @@ export interface Database {
       // Biblioteca de exercícios dos professores.
       // RLS: professor_id = auth.uid() — professor só vê os seus.
       treinos: {
+        Relationships: []
         Row: {
           id:           string
           professor_id: string
@@ -355,6 +373,7 @@ export interface Database {
       // ── treino_habilidades ──────────────────────────────────
       // Relação N:M entre treinos e habilidades.
       treino_habilidades: {
+        Relationships: []
         Row: {
           id:            string
           treino_id:     string
@@ -372,6 +391,7 @@ export interface Database {
       // Vínculo 1:1 entre aula e treino da biblioteca.
       // Ausência de registro = "Treino não definido" (gera aviso).
       aula_treino: {
+        Relationships: []
         Row: {
           id:           string
           aula_id:      string
@@ -395,6 +415,7 @@ export interface Database {
       // ── professor_modalidades ───────────────────────────────
       // Modalidades que cada professor está habilitado a lecionar.
       professor_modalidades: {
+        Relationships: []
         Row: {
           id:            string
           professor_id:  string
@@ -419,6 +440,7 @@ export interface Database {
       // tipo = 'pontual' → tem fim_previsto, pode ser superada
       // tipo = 'cronica' → permanente, fim_previsto é null
       aluno_restricoes: {
+        Relationships: []
         Row: {
           id:              string
           aluno_id:        string
@@ -461,6 +483,7 @@ export interface Database {
       // UNIQUE (aluno_id, habilidade_id). Nível nunca regressa
       // graças ao GREATEST() no trigger de presença.
       aluno_habilidades: {
+        Relationships: []
         Row: {
           id:            string
           aluno_id:      string
@@ -486,6 +509,7 @@ export interface Database {
       // O profiles.xp_total é o somatório deste log,
       // mantido em sincronia pelo trigger sincronizar_xp_total.
       aluno_xp_log: {
+        Relationships: []
         Row: {
           id:            string
           aluno_id:      string
@@ -511,6 +535,7 @@ export interface Database {
       // Avaliação de uma aula pelo aluno após presença confirmada.
       // UNIQUE (inscricao_id) — uma avaliação por inscrição.
       avaliacoes: {
+        Relationships: []
         Row: {
           id:           string
           inscricao_id: string
@@ -535,6 +560,7 @@ export interface Database {
       // ── conquistas ──────────────────────────────────────────
       // Catálogo de badges e títulos desbloqueáveis.
       conquistas: {
+        Relationships: []
         Row: {
           id:        string
           nome:      string
@@ -564,6 +590,7 @@ export interface Database {
       // Conquistas desbloqueadas por cada aluno.
       // UNIQUE (aluno_id, conquista_id) evita duplicatas.
       aluno_conquistas: {
+        Relationships: []
         Row: {
           id:              string
           aluno_id:        string
@@ -585,6 +612,7 @@ export interface Database {
       // Remuneração por aula: R$50 (≥3 alunos) ou R$30 (<3).
       // Calculado e atualizado pelo trigger calcular_pagamento_professor.
       pagamentos_professores: {
+        Relationships: []
         Row: {
           id:             string
           professor_id:   string
@@ -619,6 +647,7 @@ export interface Database {
       // Retenção mínima: 5 anos (obrigação fiscal — LGPD não se aplica
       // ao prazo: obrigação legal prevalece sobre direito ao esquecimento).
       notas_fiscais: {
+        Relationships: []
         Row: {
           id:             string
           professor_id:   string
@@ -656,6 +685,7 @@ export interface Database {
       // Desacoplada intencionalmente — sem FK para matrículas.
       // Acesso restrito ao proprietario (policy mais restritiva).
       transacoes: {
+        Relationships: []
         Row: {
           id:               string
           tipo:             'receita' | 'despesa'

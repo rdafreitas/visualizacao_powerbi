@@ -5,7 +5,7 @@
 // REGRA DE USO:
 //   Importe em Server Components, layouts e arquivos 'use server'.
 //   Nunca em Client Components ('use client').
-//   Nunca em src/middleware.ts (use lib/supabase/middleware.ts).
+//   Nunca em src/proxy.ts (use lib/supabase/proxy.ts).
 //
 // RESPONSABILIDADE ÚNICA:
 //   Este arquivo cria apenas o cliente base com a anon key.
@@ -26,7 +26,7 @@
 //   cookies. Se createClient() for chamado de um Server Component
 //   (e não de uma Server Action), o setAll lançaria uma exceção ao
 //   tentar gravar. O try/catch suprime esse erro silenciosamente.
-//   O middleware garante que os cookies de sessão sejam renovados
+//   O Proxy garante que os cookies de sessão sejam renovados
 //   a cada requisição, então o Server Component não precisa fazer isso.
 //   Referência: https://supabase.com/docs/guides/auth/server-side/nextjs
 
@@ -52,7 +52,7 @@ export async function createClient() {
             )
           } catch {
             // Chamado de Server Component — ignorar.
-            // O middleware renova a sessão entre requisições.
+            // O Proxy renova a sessão entre requisições.
           }
         },
       },

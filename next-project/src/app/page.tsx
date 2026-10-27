@@ -6,7 +6,7 @@
 //
 // POR QUE O <Suspense> É OBRIGATÓRIO AQUI?
 //   O LoginForm usa useSearchParams() para ler o parâmetro
-//   ?redirect= gravado pelo middleware. O Next.js exige que
+//   ?redirect= gravado pelo Proxy. O Next.js exige que
 //   qualquer componente com useSearchParams() esteja dentro
 //   de um <Suspense>.
 //

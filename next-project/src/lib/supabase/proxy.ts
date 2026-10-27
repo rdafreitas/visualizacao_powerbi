@@ -1,16 +1,15 @@
-// src/lib/supabase/middleware.ts
+// src/lib/supabase/proxy.ts
 //
-// Cliente Supabase para o middleware do Next.js (Edge Runtime).
+// Cliente Supabase para o Proxy do Next.js (Node.js).
 //
 // REGRA DE USO:
-//   Importe APENAS em src/middleware.ts.
+//   Importe APENAS em src/proxy.ts.
 //   Não use em Server Components, actions ou Client Components.
 //
-// POR QUE UM CLIENTE SEPARADO PARA O MIDDLEWARE?
-//   O middleware roda no Edge Runtime — um ambiente JavaScript
-//   restrito diferente do Node.js. Nele, a API cookies() do
-//   'next/headers' não existe. Os cookies chegam via
-//   request.cookies (RequestCookies da Web API padrão).
+// POR QUE UM CLIENTE SEPARADO PARA O PROXY?
+//   O Proxy trabalha com NextRequest e NextResponse.
+//   Os cookies chegam via request.cookies, sem usar cookies()
+//   de 'next/headers'.
 //   A interface { getAll, setAll } abaixo adapta essa diferença.
 //
 // POR QUE getUser() e NÃO getSession()?
@@ -26,12 +25,12 @@
 //   garante que o token é válido no momento exato da verificação.
 //   Sessões revogadas são rejeitadas imediatamente.
 //
-//   Em um middleware de segurança que roda em CADA requisição,
+//   Em um Proxy de autenticação que roda em cada requisição,
 //   a validação real do servidor é obrigatória.
 //   Referência: https://supabase.com/docs/guides/auth/server-side/nextjs
 //
 // POR QUE buscar o role aqui (e não só no Server Component)?
-//   O middleware precisa decidir PARA ONDE redirecionar antes de
+//   O Proxy precisa decidir PARA ONDE redirecionar antes de
 //   renderizar qualquer componente. Para isso precisa saber o role.
 //   Se não buscasse o role aqui, teria que redirecionar para uma
 //   página intermediária que buscaria o role e então redirecionaria
@@ -54,16 +53,28 @@ export async function updateSession(request: NextRequest) {
         getAll() {
           return request.cookies.getAll()
         },
-        setAll(cookiesToSet) {
-          // Passo 1: atualiza cookies na requisição (para o Edge Runtime ver)
+        setAll(cookiesToSet, headers) {
+          // Mantém a sessão renovada visível para a requisição e para o navegador.
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           )
           // Passo 2: recria a resposta com os cookies atualizados
           // Sem isso, os cookies renovados não chegariam ao browser
+          const previousResponse = supabaseResponse
           supabaseResponse = NextResponse.next({ request })
+          previousResponse.cookies.getAll().forEach((cookie) =>
+            supabaseResponse.cookies.set(cookie)
+          )
+          previousResponse.headers.forEach((value, name) => {
+            if (['cache-control', 'expires', 'pragma'].includes(name)) {
+              supabaseResponse.headers.set(name, value)
+            }
+          })
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
+          )
+          Object.entries(headers).forEach(([name, value]) =>
+            supabaseResponse.headers.set(name, value)
           )
         },
       },

@@ -11,7 +11,7 @@
 // ║                                                              ║
 // ║  NUNCA importe este arquivo em:                              ║
 // ║    • Client Components ('use client')                        ║
-// ║    • lib/supabase/middleware.ts                              ║
+// ║    • lib/supabase/proxy.ts                                   ║
 // ║    • Qualquer arquivo que possa ser importado pelo browser   ║
 // ║                                                              ║
 // ║  SOMENTE importe em Server Actions ('use server') que        ║
@@ -33,32 +33,19 @@
 //   aqui e poderia criar um cookie de sessão indesejado com
 //   privilégios elevados.
 
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import 'server-only'
+import { createClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/database'
 
-export async function createAdminClient() {
-  const cookieStore = await cookies()
-
-  return createServerClient<Database>(
+export function createAdminClient() {
+  return createClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,   // ← nunca com NEXT_PUBLIC_
     {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            )
-          } catch { /* ignorar em Server Components */ }
-        },
-      },
       auth: {
         persistSession:   false,  // não criar cookie de sessão admin
         autoRefreshToken: false,  // service_role não expira
+        detectSessionInUrl: false,
       },
     }
   )

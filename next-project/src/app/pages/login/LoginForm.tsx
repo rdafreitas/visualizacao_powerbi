@@ -18,6 +18,36 @@ import type { Role }                  from '@/types/app'
 
 type Perfil = 'admin' | 'professor' | 'aluno'
 
+type EtapaLogin = 'cliente' | 'autenticacao' | 'perfil' | 'credencial' | 'redirecionamento'
+
+const ERROS_DA_ETAPA: Record<EtapaLogin, string> = {
+  cliente: 'Não foi possível iniciar a conexão. Tente novamente ou contate o administrador.',
+  autenticacao: 'Não foi possível autenticar agora. Tente novamente.',
+  perfil: 'Não foi possível consultar seu perfil. Tente novamente ou contate o administrador.',
+  credencial: 'Não foi possível verificar seu acesso. Tente novamente ou contate o administrador.',
+  redirecionamento: 'Não foi possível abrir sua área. Tente novamente.',
+}
+
+function registrarErroLogin(etapa: EtapaLogin | 'logout', erro: unknown) {
+  // Apenas metadados permitidos: mensagens e objetos brutos podem conter dados sensíveis.
+  const nome = erro instanceof Error && [
+    'Error', 'TypeError', 'AuthApiError', 'AuthRetryableFetchError', 'AuthUnknownError',
+  ].includes(erro.name) ? erro.name : 'Erro desconhecido'
+  const codigo = typeof erro === 'object' && erro !== null && 'code' in erro &&
+    typeof erro.code === 'string' && (
+      /^(PGRST\d{3}|\d{5})$/.test(erro.code) ||
+      ['invalid_credentials', 'email_not_confirmed', 'request_timeout',
+        'over_request_rate_limit', 'unexpected_failure'].includes(erro.code)
+    ) ? erro.code : undefined
+  const status = typeof erro === 'object' && erro !== null && 'status' in erro &&
+    typeof erro.status === 'number' && Number.isInteger(erro.status) &&
+    erro.status >= 100 && erro.status <= 599 ? erro.status : undefined
+  const respostaInesperada = erro instanceof Error &&
+    erro.message.toLowerCase().includes('unexpected response')
+
+  console.error('[Login] Falha técnica', { etapa, nome, codigo, status, respostaInesperada })
+}
+
 const GRUPOS_DO_PERFIL: Record<Perfil, Role[]> = {
   admin:     ['proprietario', 'funcionario'],
   professor: ['professor'],
@@ -77,100 +107,103 @@ export function LoginForm() {
 
     setLoading(true)
 
-    // ── Passo 1: autentica no Supabase Auth ──────────────────
-    const supabase = createClient()
+    let etapa: EtapaLogin = 'cliente'
+    let supabase: ReturnType<typeof createClient> | undefined
+    let autenticado = false
+    let redirecionando = false
 
-    const { data: authData, error: authError } =
-      await supabase.auth.signInWithPassword({
-        email:    email.trim().toLowerCase(),
-        password: senha,
-      })
-
-    if (authError || !authData?.user) {
-      if (authError?.message?.includes('Email not confirmed')) {
-        setErro('E-mail não confirmado. Peça ao administrador para recriar o acesso via tela de Acessos.')
-      } else {
-        setErro('E-mail ou senha incorretos.')
+    async function encerrarSessao() {
+      if (!supabase) return
+      try {
+        const { error } = await supabase.auth.signOut()
+        if (error) throw error
+        autenticado = false
+      } catch (erroLogout) {
+        registrarErroLogin('logout', erroLogout)
+        setAviso('Não foi possível encerrar a sessão. Atualize a página e tente sair novamente.')
       }
-      setLoading(false)
-      return
     }
 
-    const userId = authData.user.id
-
-    // ── Passo 2: busca o role real em profiles ────────────────
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', userId)
-      .single()
-
-    if (profileError || !profile) {
-      await supabase.auth.signOut()
-      setErro(
-        'Perfil não encontrado no banco. ' +
-        'Execute o INSERT manual em profiles conforme o guia (etapa 1.9).'
-      )
-      setLoading(false)
-      return
-    }
-
-    const roleReal = profile.role as Role
-
-    // ── Passo 3: verifica profiles_credencial.ativo ───────────
-    let acessoAtivo: boolean
     try {
-      acessoAtivo = await verificarAcessoAtivo(userId)
-    } catch {
-      await supabase.auth.signOut()
-      setErro('Erro ao verificar credenciais. Verifique as variáveis de ambiente.')
-      setLoading(false)
-      return
-    }
+      supabase = createClient()
+      etapa = 'autenticacao'
 
-    if (!acessoAtivo) {
-      await supabase.auth.signOut()
+      const { data: authData, error: authError } =
+        await supabase.auth.signInWithPassword({
+          email:    email.trim().toLowerCase(),
+          password: senha,
+        })
 
-      const { data: credCheck } = await supabase
-        .from('profiles_credencial')
-        .select('profile_id')
-        .eq('profile_id', userId)
-        .maybeSingle()
-
-      if (!credCheck) {
-        setErro(
-          'Credencial não encontrada. ' +
-          'Execute o INSERT manual em profiles_credencial conforme o guia (etapa 1.9).'
-        )
-      } else {
-        setErro('Seu acesso está suspenso. Entre em contato com o administrador.')
+      if (authError) {
+        if (authError.code === 'email_not_confirmed') {
+          setErro('E-mail não confirmado. Entre em contato com o administrador.')
+          return
+        }
+        if (authError.code === 'invalid_credentials') {
+          setErro('E-mail ou senha incorretos.')
+          return
+        }
+        throw authError
       }
-      setLoading(false)
-      return
-    }
+      if (!authData.user) throw new Error('Resposta de autenticação sem usuário')
+      autenticado = true
 
-    // ── Passo 4: verificação de contexto do botão ────────────
-    const rolesDoGrupo = GRUPOS_DO_PERFIL[perfil]
-    if (!rolesDoGrupo.includes(roleReal)) {
-      setAviso(
-        `Seu perfil é de ${ROLE_LABELS[roleReal]}. Redirecionando para a área correta...`
-      )
-      setTimeout(() => {
+      const userId = authData.user.id
+      etapa = 'perfil'
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single()
+
+      if (profileError) throw profileError
+      if (!profile) throw new Error('Resposta de perfil sem dados')
+
+      const roleReal = profile.role
+      etapa = 'credencial'
+      const acesso = await verificarAcessoAtivo()
+      if (!acesso.ok) throw new Error(acesso.error)
+
+      if (acesso.data.status !== 'ativo') {
+        const mensagens = {
+          suspenso: 'Seu acesso está suspenso. Entre em contato com o administrador.',
+          ausente: 'Credencial de acesso não encontrada. Entre em contato com o administrador.',
+          sem_sessao: 'Sessão expirada. Faça login novamente.',
+        }
+        setErro(mensagens[acesso.data.status])
+        await encerrarSessao()
+        return
+      }
+
+      etapa = 'redirecionamento'
+      const rolesDoGrupo = GRUPOS_DO_PERFIL[perfil]
+      if (!rolesDoGrupo.includes(roleReal)) {
+        setAviso(
+          `Seu perfil é de ${ROLE_LABELS[roleReal]}. Redirecionando para a área correta...`
+        )
+        await new Promise<void>((resolve) => setTimeout(resolve, 2000))
         router.push(ROLE_HOME[roleReal])
         router.refresh()
-      }, 2000)
-      return
+      } else {
+        const redirectParam = searchParams.get('redirect')
+        const destino =
+          redirectParam && redirectParam.startsWith('/')
+            ? redirectParam
+            : ROLE_HOME[roleReal]
+
+        router.push(destino)
+        router.refresh()
+      }
+      redirecionando = true
+    } catch (erroLogin) {
+      registrarErroLogin(etapa, erroLogin)
+      setAviso('')
+      setErro(ERROS_DA_ETAPA[etapa])
+      if (autenticado) await encerrarSessao()
+    } finally {
+      if (!redirecionando) setLoading(false)
     }
-
-    // ── Passo 5: redireciona para o destino correto ───────────
-    const redirectParam = searchParams.get('redirect')
-    const destino =
-      redirectParam && redirectParam.startsWith('/')
-        ? redirectParam
-        : ROLE_HOME[roleReal]
-
-    router.push(destino)
-    router.refresh()
   }
 
   return (

@@ -127,7 +127,7 @@ export async function requireRole(
 
 // ── getCurrentRole ────────────────────────────────────────────
 // Versão leve: retorna apenas o role sem buscar o profile completo.
-// Usada pelo middleware (que já tem o role disponível de outra forma)
+// Usada pelo Proxy (que já tem o role disponível de outra forma)
 // e por verificações rápidas que não precisam de nome/email/etc.
 export async function getCurrentRole(): Promise<Role | null> {
   const supabase = await createClient()

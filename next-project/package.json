@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:login": "node --test tests/login-form.test.mjs tests/auth-flows.test.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.5",

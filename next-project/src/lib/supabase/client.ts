@@ -4,7 +4,7 @@
 //
 // REGRA DE USO:
 //   Importe apenas em arquivos com 'use client'.
-//   Nunca em Server Components, layouts ou middleware.
+//   Nunca em Server Components, layouts ou Proxy.
 //
 // SOBRE A ANON KEY NO BROWSER:
 //   NEXT_PUBLIC_SUPABASE_ANON_KEY aparece no bundle JavaScript

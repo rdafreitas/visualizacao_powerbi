@@ -20,6 +20,87 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+## Diagnóstico de erros de login
+
+O formulário distingue recusas de autenticação (credenciais inválidas ou e-mail
+não confirmado) de falhas técnicas. Nas falhas técnicas, o console do navegador
+registra `[Login] Falha técnica` e a etapa: `cliente`, `autenticacao`, `perfil`,
+`credencial`, `redirecionamento` ou `logout`.
+
+Os registros incluem somente metadados permitidos: tipo de erro, código conhecido,
+status HTTP e indicação de resposta inesperada. Não incluem objetos brutos,
+mensagens originais, senhas, e-mails, tokens, cookies ou chaves. Uma resposta
+inesperada na etapa `credencial` indica falha na chamada da Server Action, mas
+não comprova, por si só, problema de configuração ou redirecionamento.
+
+O formulário libera o carregamento após falhas e informa quando o encerramento
+da sessão também falha, sem substituir o erro original.
+
+### Fluxo de acesso e sessão
+
+- [Proxy](src/proxy.ts): substitui a convenção depreciada de Middleware no Next.js
+  16, usando o runtime Node.js padrão. O redirecionamento automático do login para
+  a home ocorre somente em GET/HEAD. O POST na página de login pode executar a
+  Server Action; isso não libera POSTs anônimos nas rotas protegidas.
+- [Verificação de acesso](src/(auth)/actions/usuarios.ts): `verificarAcessoAtivo()`
+  não recebe mais um ID do navegador. Valida a sessão com `getUser()` e consulta
+  a credencial do próprio usuário com o cliente comum, respeitando o RLS.
+  Retorna `ActionResult` com status `ativo`, `suspenso`, `ausente` ou `sem_sessao`.
+  Falhas técnicas retornam `ok: false`, nunca uma suspensão fictícia.
+- O formulário só navega após receber `ativo`. Nos demais estados, informa a
+  causa e encerra a sessão, sem consultar credenciais depois do logout.
+- [Atualização de sessão](src/lib/supabase/proxy.ts): preserva cookies entre
+  chamadas de `setAll`, incluindo exclusões e opções. Cookies renovados e os
+  cabeçalhos de controle de cache do SDK também acompanham os redirecionamentos.
+- [Cliente administrativo](src/lib/supabase/admin.ts): usa `createClient` de
+  `@supabase/supabase-js`, com proteção `server-only`, sem cookies ou persistência
+  de sessão. Cadastro e redefinição continuam exigindo proprietário nas actions.
+  Esse cliente não participa da verificação de acesso no login.
+
+No terminal do servidor, `[Acesso] Falha técnica` identifica a etapa `sessao` ou
+`credencial`, com código de banco/PostgREST e status HTTP filtrados, quando
+disponíveis. Nenhum objeto de erro bruto é registrado.
+
+Uma consulta sem linha visível retorna `ausente`: RLS também pode ocultar uma
+linha sem retornar erro. O código não pode distinguir esse caso de uma linha
+inexistente. Permanece necessária a policy de leitura da própria credencial.
+
+Os [tipos do banco](src/types/database.ts) incluem os metadados `Relationships`
+exigidos pelo SDK para não inferir as consultas como `never`, incluindo a relação
+1:1 já documentada entre credencial e perfil. Os tipos continuam manuais e não
+substituem a validação do schema real; nenhuma migração SQL foi feita.
+
+Execute os testes locais com:
+
+```bash
+npm run test:login
+```
+
+Os testes usam o runner nativo do Node.js e o TypeScript instalado para executar
+o formulário, as actions e o Proxy com Supabase e configuração simulados. Utilizam
+`NextRequest`, `NextResponse` e o utilitário de teste de matcher do Next.js instalado.
+Cobrem estados de acesso, falhas técnicas, identidade no servidor, cookies,
+redirecionamentos, permissões e isolamento administrativo. Não acessam arquivos
+de ambiente nem fazem conexão com o Supabase.
+
+Para validar manualmente no seu ambiente:
+
+1. Com usuário ativo, confirme que o POST do login não é substituído pelo
+   redirecionamento automático do Proxy e que a área correta é aberta.
+2. Com usuário suspenso, confirme a mensagem de suspensão, sem navegação interna.
+3. Com credencial ausente ou sessão expirada, confirme a mensagem correspondente.
+4. Verifique que falhas técnicas não são apresentadas como suspensão e que o
+   botão é liberado para nova tentativa.
+5. Teste uma sessão próxima da renovação: cookies e cabeçalhos de não cache devem
+   acompanhar a resposta, inclusive em redirecionamentos. Atualizar a página
+   seguinte não deve exigir novo login.
+6. Como proprietário, cadastre outro usuário e confirme que sua própria sessão
+   permanece a mesma. Sem essa permissão, a operação deve continuar recusada.
+
+Os testes simulados não substituem essas verificações reais. As mudanças mantêm
+a verificação de `ativo` no fluxo de login; não implementam revogação contínua de
+sessões já abertas ao alterar o status de acesso.
+
 ## Identidade da marca
 
 A identidade visual fica em dois arquivos:

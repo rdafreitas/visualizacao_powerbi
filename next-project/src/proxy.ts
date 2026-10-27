@@ -1,8 +1,8 @@
 // ─────────────────────────────────────────────────────────────
-// src/middleware.ts
+// src/proxy.ts
 //
-// O middleware é o porteiro do site. Roda no servidor Edge
-// Runtime ANTES de qualquer página ser renderizada.
+// O Proxy é o porteiro do site. Roda no servidor Node.js
+// antes de qualquer página ser renderizada.
 //
 // ORDEM DE VERIFICAÇÃO (6 passos sequenciais):
 //   1. Renova o cookie de sessão Supabase
@@ -13,14 +13,14 @@
 //   6. Aprovado → deixa a requisição seguir
 //
 // SEGURANÇA EM CAMADAS:
-//   Este middleware é a 1ª camada. Existem mais duas:
+//   Este Proxy é a 1ª camada. Existem mais duas:
 //   • layouts e Server Components (2ª camada via requireAuth)
 //   • RLS no PostgreSQL (3ª camada, independente do código)
 //   Se qualquer camada acima falhar, as seguintes ainda protegem.
 // ─────────────────────────────────────────────────────────────
 
 import { NextResponse, type NextRequest } from 'next/server'
-import { updateSession } from '@/lib/supabase/middleware'
+import { updateSession } from '@/lib/supabase/proxy'
 import {
   ROLE_HOME,
   getRoutePermission,
@@ -30,7 +30,7 @@ import {
 import { PUBLIC_ROUTES, LOGIN_ROUTE } from '@/lib/constants'
 import type { Role } from '@/types/app'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Extrai apenas o pathname da URL (sem query string nem hash).
   // Ex: para "https://andorin.com/pages/admin/home?tab=1"
   //     pathname = "/pages/admin/home"
@@ -44,6 +44,18 @@ export async function middleware(request: NextRequest) {
   // Se o token estiver próximo do vencimento, ele é renovado
   // automaticamente e o cookie atualizado vai na resposta.
   const { supabaseResponse, user, role } = await updateSession(request)
+
+  function redirectWithSession(url: URL) {
+    const response = NextResponse.redirect(url)
+    supabaseResponse.cookies.getAll().forEach((cookie) =>
+      response.cookies.set(cookie)
+    )
+    for (const header of ['cache-control', 'expires', 'pragma']) {
+      const value = supabaseResponse.headers.get(header)
+      if (value !== null) response.headers.set(header, value)
+    }
+    return response
+  }
 
   // ── Passo 2: rotas públicas ────────────────────────────────
   // PUBLIC_ROUTES = ['/'] — apenas a raiz (página de login).
@@ -59,8 +71,10 @@ export async function middleware(request: NextRequest) {
     // ROLE_HOME mapeia: proprietario/funcionario → /pages/admin/home
     //                   professor → /pages/professor/home
     //                   aluno     → /pages/aluno/home
-    if (user && role && pathname === '/') {
-      return NextResponse.redirect(
+    // Server Actions usam POST na mesma rota e precisam concluir a verificação de acesso.
+    const isNavigation = request.method === 'GET' || request.method === 'HEAD'
+    if (user && role && pathname === LOGIN_ROUTE && isNavigation) {
+      return redirectWithSession(
         new URL(ROLE_HOME[role as Role], request.url)
       )
     }
@@ -75,7 +89,7 @@ export async function middleware(request: NextRequest) {
   if (!user || !role) {
     const loginUrl = new URL(LOGIN_ROUTE, request.url)
     loginUrl.searchParams.set('redirect', pathname)
-    return NextResponse.redirect(loginUrl)
+    return redirectWithSession(loginUrl)
   }
 
   // ── Passo 4: permissão granular da rota ───────────────────
@@ -91,7 +105,7 @@ export async function middleware(request: NextRequest) {
   // Isso evita revelar que a rota existe para quem não tem acesso.
   const requiredPermission = getRoutePermission(pathname)
   if (requiredPermission && !hasPermission(role as Role, requiredPermission)) {
-    return NextResponse.redirect(
+    return redirectWithSession(
       new URL(ROLE_HOME[role as Role], request.url)
     )
   }
@@ -105,17 +119,17 @@ export async function middleware(request: NextRequest) {
   //
   // isAdminRole() verifica se é 'proprietario' ou 'funcionario'.
   if (pathname.startsWith('/pages/admin') && !isAdminRole(role as Role)) {
-    return NextResponse.redirect(
+    return redirectWithSession(
       new URL(ROLE_HOME[role as Role], request.url)
     )
   }
   if (pathname.startsWith('/pages/professor') && role !== 'professor') {
-    return NextResponse.redirect(
+    return redirectWithSession(
       new URL(ROLE_HOME[role as Role], request.url)
     )
   }
   if (pathname.startsWith('/pages/aluno') && role !== 'aluno') {
-    return NextResponse.redirect(
+    return redirectWithSession(
       new URL(ROLE_HOME[role as Role], request.url)
     )
   }
@@ -130,12 +144,12 @@ export async function middleware(request: NextRequest) {
 }
 
 // ── Matcher ────────────────────────────────────────────────────
-// Define em quais URLs o middleware executa.
+// Define em quais URLs o Proxy executa.
 //
 // A expressão (?!...) é um "negative lookahead" de regex:
 // exclui os padrões listados dentro dos parênteses.
 //
-// Sem esta exclusão, o middleware rodaria para CADA arquivo
+// Sem esta exclusão, o Proxy rodaria para CADA arquivo
 // estático (imagens, fontes, ícones, manifest PWA, service worker)
 // — potencialmente centenas de execuções por carregamento de página,
 // adicionando latência sem nenhum benefício de segurança.

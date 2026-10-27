@@ -27,6 +27,7 @@
 import { createClient }       from '@/lib/supabase/server'
 import { createAdminClient }  from '@/lib/supabase/admin'
 import { getProfile }         from '@/(auth)/session'
+import { isAuthSessionMissingError } from '@supabase/supabase-js'
 import type { Role }          from '@/types/app'
 
 // ── Tipo de retorno padronizado ───────────────────────────────
@@ -37,6 +38,8 @@ import type { Role }          from '@/types/app'
 export type ActionResult<T = void> =
   | { ok: true;  data: T }
   | { ok: false; error: string }
+
+export type StatusAcesso = 'ativo' | 'suspenso' | 'ausente' | 'sem_sessao'
 
 // ── Input de cadastro ─────────────────────────────────────────
 export interface CadastroUsuarioInput {
@@ -133,7 +136,7 @@ export async function cadastrarUsuario(
   if (!input.role)               return { ok: false, error: 'Tipo de acesso é obrigatório.' }
 
   // Cliente admin — bypassa RLS para criar usuário no Auth
-  const adminClient = await createAdminClient()
+  const adminClient = createAdminClient()
 
   // ── Passo 1: cria em auth.users ─────────────────────────────
   // email_confirm: true → usuário pode logar imediatamente.
@@ -197,7 +200,7 @@ export async function cadastrarUsuario(
     //   profiles_credencial → falhou ✗
     //
     // Esse estado inconsistente impediria o login do usuário
-    // (verificarAcessoAtivo retornaria false por ausência de credencial).
+    // (verificarAcessoAtivo retornaria o status ausente).
     // Deletamos o usuário do Auth para limpar o estado completamente.
     // O ON DELETE CASCADE em profiles garante que o profile também
     // é removido automaticamente junto com o auth.users.
@@ -282,7 +285,7 @@ export async function redefinirSenha(
     return { ok: false, error: 'A nova senha deve ter pelo menos 6 caracteres.' }
   }
 
-  const adminClient = await createAdminClient()
+  const adminClient = createAdminClient()
 
   const { error } = await adminClient.auth.admin.updateUserById(profileId, {
     password: novaSenha,
@@ -373,28 +376,49 @@ export async function listarUsuariosComCredencial(): Promise<
 //   Um usuário bloqueado (ativo = false) conseguiria passar pela
 //   autenticação do Supabase sem esta verificação adicional.
 //
-// Por que retorna boolean e não ActionResult?
-//   Ela é usada em um ponto específico do LoginForm onde a lógica
-//   é binária: pode logar ou não pode. Não há dados adicionais
-//   a retornar além do boolean.
-//
-// Por que não é protegida por exigirProprietario?
-//   Esta action é chamada pelo próprio usuário que acabou de
-//   autenticar — não pelo proprietário. O RLS permite que
-//   o usuário leia sua própria linha em profiles_credencial
-//   (policy "usuario vê própria credencial").
+// A identidade vem de getUser() no servidor, nunca de um ID enviado
+// pelo navegador. O cliente comum preserva o RLS; não usa service_role.
+// Uma falha técnica não equivale a uma credencial ausente ou suspensa.
 // ─────────────────────────────────────────────────────────────
-export async function verificarAcessoAtivo(userId: string): Promise<boolean> {
-  const supabase = await createClient()
+export async function verificarAcessoAtivo(): Promise<ActionResult<{ status: StatusAcesso }>> {
+  let etapa = 'sessao'
+  try {
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-  const { data } = await supabase
-    .from('profiles_credencial')
-    .select('ativo')
-    .eq('profile_id', userId)
-    .single()
+    if (authError) {
+      if (isAuthSessionMissingError(authError) || [
+        'session_not_found', 'session_expired', 'bad_jwt',
+        'refresh_token_not_found', 'refresh_token_already_used',
+      ].includes(authError.code ?? '')) {
+        return { ok: true, data: { status: 'sem_sessao' } }
+      }
+      throw authError
+    }
+    if (!user) return { ok: true, data: { status: 'sem_sessao' } }
 
-  // Se credencial não existe (null) → trata como bloqueado.
-  // Isso cobre o caso de usuário criado manualmente pelo painel
-  // do Supabase sem INSERT em profiles_credencial.
-  return data?.ativo ?? false
+    etapa = 'credencial'
+    const { data, error } = await supabase
+      .from('profiles_credencial')
+      .select('ativo')
+      .eq('profile_id', user.id)
+      .maybeSingle()
+
+    if (error) throw error
+    if (!data) return { ok: true, data: { status: 'ausente' } }
+    if (typeof data.ativo !== 'boolean') throw new Error('Status de acesso inválido')
+    return { ok: true, data: { status: data.ativo ? 'ativo' : 'suspenso' } }
+  } catch (erro) {
+    const codigo = typeof erro === 'object' && erro !== null && 'code' in erro &&
+      typeof erro.code === 'string' && /^(PGRST\d{3}|\d{5})$/.test(erro.code)
+      ? erro.code : undefined
+    const status = typeof erro === 'object' && erro !== null && 'status' in erro &&
+      typeof erro.status === 'number' && Number.isInteger(erro.status) &&
+      erro.status >= 100 && erro.status <= 599 ? erro.status : undefined
+    console.error('[Acesso] Falha técnica', { etapa, codigo, status })
+    return {
+      ok: false,
+      error: 'Não foi possível verificar seu acesso. Tente novamente ou contate o administrador.',
+    }
+  }
 }
