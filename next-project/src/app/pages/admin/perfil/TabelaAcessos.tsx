@@ -2,12 +2,13 @@
 // ─────────────────────────────────────────────────────────────
 // src/app/pages/admin/perfil/TabelaAcessos.tsx
 //
-// Tabela de usuários com ações de bloqueio e redefinição de senha.
+// Tabela de usuários com ações de editar, redefinir senha e bloquear.
 // Client Component: gerencia estado do modal de senha e toasts.
 //
-// As ações chamam Server Actions diretamente:
-//   alterarStatusAcesso  ← (auth)/actions/usuarios
-//   redefinirSenha       ← (auth)/actions/usuarios
+// Ações (botões de ícone, com tooltip):
+//   ✏️ Editar        → onEditar(usuario): o AcessosClient abre o formulário
+//   🔑 Mude a senha  → redefinirSenha        ← (auth)/actions/usuarios
+//   🔒 Desative o usuário → alterarStatusAcesso ← (auth)/actions/usuarios
 //
 // Após cada ação bem-sucedida, onRefresh() é chamado —
 // que dispara router.refresh() no AcessosClient, re-executando
@@ -18,6 +19,8 @@ import { useState }                              from 'react'
 import { Table, Thead, Th, Tbody, Tr, Td }       from '@/components/ui/Table'
 import { Badge }                                 from '@/components/ui/Badge'
 import { Button }                                from '@/components/ui/Button'
+import { IconButton }                            from '@/components/ui/IconButton'
+import { IconLapis, IconChave, IconCadeado, IconCadeadoAberto } from '@/components/ui/icons'
 import { Modal }                                 from '@/components/ui/Modal'
 import { Input }                                 from '@/components/ui/Input'
 import { Toast }                                 from '@/components/ui/Toast'
@@ -48,6 +51,7 @@ interface Props {
   usuarios:  UsuarioRow[]
   meuId:     string      // id do usuário logado — para marcar a própria linha
   onRefresh: () => void  // dispara router.refresh() no AcessosClient
+  onEditar:  (usuario: UsuarioRow) => void  // abre o modal de edição no AcessosClient
 }
 
 function formatDate(iso: string | null) {
@@ -57,7 +61,7 @@ function formatDate(iso: string | null) {
   })
 }
 
-export function TabelaAcessos({ usuarios, meuId, onRefresh }: Props) {
+export function TabelaAcessos({ usuarios, meuId, onRefresh, onEditar }: Props) {
 
   // Estado do modal de redefinição de senha
   const [modalSenha, setModalSenha] = useState<UsuarioRow | null>(null)
@@ -196,31 +200,34 @@ export function TabelaAcessos({ usuarios, meuId, onRefresh }: Props) {
               <Td>
                 <div className="flex items-center justify-end gap-2">
 
+                  <IconButton label="Editar" onClick={() => onEditar(u)}>
+                    <IconLapis />
+                  </IconButton>
+
                   {u.id !== meuId && (
-                    <Button
-                      size="sm"
-                      variant="outline"
+                    <IconButton
+                      label="Mude a senha"
                       onClick={() => {
                         setModalSenha(u)
                         setNovaSenha('')
                         setErrSenha('')
                       }}
                     >
-                      🔑 Senha
-                    </Button>
+                      <IconChave />
+                    </IconButton>
                   )}
 
                   {u.id !== meuId && (
-                    <Button
-                      size="sm"
+                    <IconButton
+                      label={u.ativo ? 'Desative o usuário' : 'Ative o usuário'}
                       variant={u.ativo ? 'danger' : 'secondary'}
                       onClick={() => handleToggleAtivo(u)}
                     >
-                      {u.ativo ? 'Bloquear' : 'Ativar'}
-                    </Button>
+                      {u.ativo ? <IconCadeado /> : <IconCadeadoAberto />}
+                    </IconButton>
                   )}
 
-                  {/* Linha do próprio usuário — sem botões de ação */}
+                  {/* Linha do próprio usuário — sem senha/bloqueio */}
                   {u.id === meuId && (
                     <span className="text-xs text-gray-mid italic">Você</span>
                   )}

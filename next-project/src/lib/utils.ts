@@ -125,6 +125,31 @@ export function iniciais(nome: string): string {
     .join('')
 }
 
+/** Minúsculas, sem acentos e sem espaços nas pontas — para comparar textos */
+export function normalizarTexto(texto: string): string {
+  return texto
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+}
+
+/**
+ * Filtra usuários por role e depois por parte do nome.
+ * A busca por nome só enxerga quem passou pelo filtro de role.
+ * role = 'todos' desativa o filtro de role; busca vazia desativa a busca.
+ */
+export function filtrarUsuarios<T extends { nome: string; role: string }>(
+  usuarios: T[],
+  role: string,
+  busca: string,
+): T[] {
+  const termo = normalizarTexto(busca)
+  return usuarios
+    .filter((u) => role === 'todos' || u.role === role)
+    .filter((u) => !termo || normalizarTexto(u.nome).includes(termo))
+}
+
 /** Converte string para slug URL-safe */
 export function slugify(texto: string): string {
   return texto

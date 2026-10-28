@@ -377,3 +377,92 @@ test('proprietor creates and resets another user through the isolated administra
   assert.equal(profile.role, 'proprietario')
   assert.equal(app.queries.length, 0)
 })
+
+function profilesUpdateClient({ updated = [{ id: 'target' }], error = null } = {}) {
+  const calls = []
+  return {
+    calls,
+    from(table) {
+      assert.equal(table, 'profiles')
+      const query = {
+        update(values) { calls.push(['update', values]); return query },
+        eq(column, value) { calls.push(['eq', column, value]); return query },
+        async select(columns) { calls.push(['select', columns]); return { data: updated, error } },
+      }
+      return query
+    },
+  }
+}
+
+test('atualizarUsuario requires a proprietor and never touches the administrative client otherwise', async () => {
+  for (const profile of [null, { id: 'caller', role: 'aluno' }, { id: 'caller', role: 'funcionario' }]) {
+    const app = setupAction({ profile })
+    const result = await app.actions.atualizarUsuario('target', { nome: 'Test', role: 'aluno' })
+    assert.equal(result.ok, false)
+    assert.equal(app.adminCalls, 0)
+  }
+})
+
+test('atualizarUsuario validates input before reaching the database', async () => {
+  const profile = { id: 'caller', role: 'proprietario' }
+  for (const [id, input] of [
+    ['target', { nome: '   ', role: 'aluno' }],
+    ['target', { nome: 'Test', role: 'admin' }],
+    ['target', { nome: 'Test', role: 'aluno', telefone: 'x'.repeat(31) }],
+    ['', { nome: 'Test', role: 'aluno' }],
+    ['caller', { nome: 'Test', role: 'aluno' }],
+  ]) {
+    const app = setupAction({ profile })
+    const result = await app.actions.atualizarUsuario(id, input)
+    assert.equal(result.ok, false)
+    assert.equal(app.adminCalls, 0)
+  }
+})
+
+test('atualizarUsuario writes only name, phone and role, and never the e-mail', async () => {
+  const profile = { id: 'caller', role: 'proprietario' }
+  const adminClient = profilesUpdateClient()
+  const app = setupAction({ profile, adminClient })
+  const result = await app.actions.atualizarUsuario('target', {
+    nome: '  Maria  ', role: 'professor', telefone: ' ', email: 'hacker@example.invalid',
+  })
+  assert.equal(result.ok, true)
+  assert.equal(result.data.nome, 'Maria')
+  assert.equal(JSON.stringify(adminClient.calls), JSON.stringify([
+    ['update', { nome: 'Maria', role: 'professor', telefone: null }],
+    ['eq', 'id', 'target'],
+    ['select', 'id'],
+  ]))
+})
+
+test('atualizarUsuario lets a proprietor edit own name but not own role, and reports missing rows', async () => {
+  const profile = { id: 'caller', role: 'proprietario' }
+  const own = setupAction({ profile, adminClient: profilesUpdateClient({ updated: [{ id: 'caller' }] }) })
+  assert.equal((await own.actions.atualizarUsuario('caller', { nome: 'Me', role: 'proprietario' })).ok, true)
+
+  const missing = setupAction({ profile, adminClient: profilesUpdateClient({ updated: [] }) })
+  const notFound = await missing.actions.atualizarUsuario('ghost', { nome: 'Test', role: 'aluno' })
+  assert.equal(notFound.ok, false)
+  assert.match(notFound.error, /não encontrado/)
+
+  const failing = setupAction({ profile, adminClient: profilesUpdateClient({ updated: null, error: { code: '42501', message: 'denied' } }) })
+  const failed = await failing.actions.atualizarUsuario('target', { nome: 'Test', role: 'aluno' })
+  assert.equal(failed.ok, false)
+  assert.equal(failing.logs.length, 1)
+})
+
+test('filtrarUsuarios filters by role first and then by accent-insensitive name search', () => {
+  const { filtrarUsuarios } = loadModule('src/lib/utils.ts')
+  const lista = [
+    { id: 1, nome: 'João Silva', role: 'aluno' },
+    { id: 2, nome: 'Joana Souza', role: 'professor' },
+    { id: 3, nome: 'Ana Joao', role: 'aluno' },
+  ]
+  const ids = (r) => JSON.stringify(r.map((u) => u.id))
+  assert.equal(ids(filtrarUsuarios(lista, 'todos', '')), '[1,2,3]')
+  assert.equal(ids(filtrarUsuarios(lista, 'aluno', '')), '[1,3]')
+  assert.equal(ids(filtrarUsuarios(lista, 'todos', ' JOAO ')), '[1,3]')
+  assert.equal(ids(filtrarUsuarios(lista, 'aluno', 'joa')), '[1,3]')
+  assert.equal(ids(filtrarUsuarios(lista, 'professor', 'joa')), '[2]')
+  assert.equal(ids(filtrarUsuarios(lista, 'professor', 'silva')), '[]')
+})

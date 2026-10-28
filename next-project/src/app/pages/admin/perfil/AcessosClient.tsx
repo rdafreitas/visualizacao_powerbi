@@ -28,11 +28,16 @@
 //   "atualizando…" no contador de usuários sem bloquear a UI.
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useTransition } from 'react'
+import { useMemo, useState, useTransition } from 'react'
 import { useRouter }               from 'next/navigation'
 import { Button }                  from '@/components/ui/Button'
+import { Chip }                    from '@/components/ui/Chip'
+import { Input }                   from '@/components/ui/Input'
 import { Toast }                   from '@/components/ui/Toast'
+import { filtrarUsuarios }         from '@/lib/utils'
 import { FormCadastroUsuario }     from './FormCadastroUsuario'
+import { FormEditarUsuario }       from './FormEditarUsuario'
+import { ROLES }                   from './SeletorRole'
 import { TabelaAcessos, type UsuarioRow } from './TabelaAcessos'
 
 interface Props {
@@ -44,9 +49,24 @@ export function AcessosClient({ usuarios, meuId }: Props) {
   const router = useRouter()
 
   const [modalAberto,  setModalAberto]  = useState(false)
+  const [editando,     setEditando]     = useState<UsuarioRow | null>(null)
+  const [filtroRole,   setFiltroRole]   = useState<'todos' | UsuarioRow['role']>('todos')
+  const [busca,        setBusca]        = useState('')
   const [toast,        setToast]        = useState('')
   const [showToast,    setShowToast]    = useState(false)
   const [isPending,    startTransition] = useTransition()
+
+  // A busca por nome só atua sobre quem passou pelo filtro de role.
+  const visiveis = useMemo(
+    () => filtrarUsuarios(usuarios, filtroRole, busca),
+    [usuarios, filtroRole, busca],
+  )
+  const filtrando = filtroRole !== 'todos' || busca.trim() !== ''
+
+  function limparFiltros() {
+    setFiltroRole('todos')
+    setBusca('')
+  }
 
   // Solicita ao Next.js que re-execute o Server Component pai.
   // Nenhum dado fica em memória local — tudo vem do banco após o refresh.
@@ -56,8 +76,8 @@ export function AcessosClient({ usuarios, meuId }: Props) {
     })
   }
 
-  function handleSalvo() {
-    setToast('Usuário cadastrado com sucesso!')
+  function handleSalvo(mensagem: string) {
+    setToast(mensagem)
     setShowToast(true)
     handleRefresh()
   }
@@ -66,8 +86,9 @@ export function AcessosClient({ usuarios, meuId }: Props) {
     <>
       <div className="flex items-center justify-between mb-5">
         <p className="text-sm text-gray-mid">
-          {usuarios.length}{' '}
-          {usuarios.length === 1 ? 'usuário cadastrado' : 'usuários cadastrados'}
+          {filtrando
+            ? `${visiveis.length} de ${usuarios.length} ${usuarios.length === 1 ? 'usuário' : 'usuários'}`
+            : `${usuarios.length} ${usuarios.length === 1 ? 'usuário cadastrado' : 'usuários cadastrados'}`}
           {/* isPending: verdadeiro enquanto o refresh do banco está em andamento */}
           {isPending && ' · atualizando…'}
         </p>
@@ -76,17 +97,76 @@ export function AcessosClient({ usuarios, meuId }: Props) {
         </Button>
       </div>
 
-      <TabelaAcessos
-        usuarios={usuarios}
-        meuId={meuId}
-        onRefresh={handleRefresh}
-      />
+      {usuarios.length > 0 && (
+        <div className="flex flex-col gap-3 mb-5">
+          <div className="flex items-center gap-2">
+            <div className="flex-1 max-w-sm">
+              <Input
+                id="busca-usuario"
+                type="search"
+                placeholder="Buscar por nome"
+                aria-label="Buscar usuário por nome"
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                autoComplete="off"
+              />
+            </div>
+            {filtrando && (
+              <Button variant="ghost" size="sm" onClick={limparFiltros}>
+                Limpar filtros
+              </Button>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Chip
+              label="Todos"
+              active={filtroRole === 'todos'}
+              onClick={() => setFiltroRole('todos')}
+            />
+            {ROLES.map((r) => (
+              <Chip
+                key={r.value}
+                label={r.label}
+                active={filtroRole === r.value}
+                onClick={() => setFiltroRole(r.value)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {usuarios.length > 0 && visiveis.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
+          <span className="text-4xl opacity-30">🔍</span>
+          <p className="text-sm text-gray-mid">Nenhum usuário encontrado com esses filtros.</p>
+          <Button variant="outline" size="sm" onClick={limparFiltros}>
+            Limpar filtros
+          </Button>
+        </div>
+      ) : (
+        <TabelaAcessos
+          usuarios={visiveis}
+          meuId={meuId}
+          onRefresh={handleRefresh}
+          onEditar={setEditando}
+        />
+      )}
 
       <FormCadastroUsuario
         open={modalAberto}
         onClose={() => setModalAberto(false)}
-        onSave={handleSalvo}
+        onSave={() => handleSalvo('Usuário cadastrado com sucesso!')}
       />
+
+      {editando && (
+        <FormEditarUsuario
+          key={editando.id}
+          usuario={editando}
+          ehProprio={editando.id === meuId}
+          onClose={() => setEditando(null)}
+          onSave={() => handleSalvo('Usuário atualizado com sucesso!')}
+        />
+      )}
 
       <Toast message={toast} show={showToast} onHide={() => setShowToast(false)} />
     </>

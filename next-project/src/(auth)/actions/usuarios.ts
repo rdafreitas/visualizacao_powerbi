@@ -212,6 +212,79 @@ export async function cadastrarUsuario(
 }
 
 // ─────────────────────────────────────────────────────────────
+// ACTION: atualizarUsuario
+//
+// Proprietário edita nome, telefone e role de um usuário.
+// O e-mail NÃO é editável: não faz parte do input e o UPDATE
+// monta explicitamente apenas as colunas permitidas, então campos
+// extras enviados por uma requisição forjada são ignorados.
+//
+// Usa o cliente admin porque as policies de UPDATE em profiles não
+// estão versionadas; a autorização é garantida por exigirProprietario()
+// e o UPDATE é restrito ao id informado.
+// ─────────────────────────────────────────────────────────────
+const ROLES_VALIDOS: readonly Role[] = ['proprietario', 'funcionario', 'professor', 'aluno']
+
+export interface AtualizarUsuarioInput {
+  nome:      string
+  role:      Role
+  telefone?: string | null
+}
+
+export async function atualizarUsuario(
+  profileId: string,
+  input:     AtualizarUsuarioInput
+): Promise<ActionResult<{ id: string; nome: string }>> {
+
+  let quemChamou
+  try {
+    quemChamou = await exigirProprietario()
+  } catch (err) {
+    return { ok: false, error: (err as Error).message }
+  }
+
+  const nomeLimpo     = typeof input?.nome === 'string' ? input.nome.trim() : ''
+  const telefoneLimpo = typeof input?.telefone === 'string' ? input.telefone.trim() : ''
+
+  if (!profileId)                              return { ok: false, error: 'Usuário inválido.' }
+  if (!nomeLimpo)                              return { ok: false, error: 'Nome é obrigatório.' }
+  if (nomeLimpo.length > 120)                  return { ok: false, error: 'Nome muito longo.' }
+  if (telefoneLimpo.length > 30)               return { ok: false, error: 'Telefone muito longo.' }
+  if (!ROLES_VALIDOS.includes(input?.role))    return { ok: false, error: 'Tipo de acesso inválido.' }
+
+  // Sem isso o proprietário poderia se rebaixar e perder o acesso ao painel.
+  if (profileId === quemChamou.id && input.role !== quemChamou.role) {
+    return { ok: false, error: 'Você não pode alterar o seu próprio tipo de acesso.' }
+  }
+
+  const adminClient = createAdminClient()
+
+  // .select() permite detectar UPDATE que não afetou nenhuma linha.
+  const { data, error } = await adminClient
+    .from('profiles')
+    .update({
+      nome:     nomeLimpo,
+      role:     input.role,
+      telefone: telefoneLimpo || null,
+    })
+    .eq('id', profileId)
+    .select('id')
+
+  if (error) {
+    console.error('[Acessos] Falha ao atualizar usuário', {
+      codigo:   error.code,
+      mensagem: error.message,
+    })
+    return { ok: false, error: 'Erro ao atualizar usuário.' }
+  }
+  if (!data || data.length === 0) {
+    return { ok: false, error: 'Usuário não encontrado.' }
+  }
+
+  return { ok: true, data: { id: profileId, nome: nomeLimpo } }
+}
+
+// ─────────────────────────────────────────────────────────────
 // ACTION: alterarStatusAcesso
 //
 // Ativa ou desativa o login de um usuário sem excluí-lo.
