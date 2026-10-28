@@ -1,36 +1,59 @@
 'use client'
 // ─────────────────────────────────────────────────────────────
-// AcessosClient — versão FRONT-END ESTÁTICO
-// Movido para app/pages/admin/perfil/ (junto com page.tsx e acessos/).
-// Dados demo hardcoded. router.refresh() e useTransition removidos.
-// Quando o back-end for integrado:
-//   1. Receber usuarios e meuId como props do Server Component pai
-//   2. Restaurar useTransition e router.refresh() no handleRefresh
+// src/app/pages/admin/perfil/AcessosClient.tsx
+//
+// Orquestrador da tela de Acessos.
+// Client Component porque gerencia estado local (modal aberto,
+// toast) e usa hooks do React (useTransition, useRouter).
+//
+// PADRÃO USADO: Server Component passa dados → Client Component orquestra
+//   AcessosPage (Server Component)
+//     └── busca dados no servidor com listarUsuariosComCredencial()
+//     └── passa como props: usuarios[] e meuId
+//         └── AcessosClient (Client Component)
+//             ├── gerencia abertura do modal de cadastro
+//             ├── dispara router.refresh() após mutações
+//             └── passa dados para TabelaAcessos e FormCadastroUsuario
+//
+// POR QUE router.refresh() E NÃO recarregar o estado local?
+//   router.refresh() instrui o Next.js a re-executar o Server Component
+//   pai (AcessosPage), que chama listarUsuariosComCredencial() novamente
+//   e passa os dados atualizados para baixo como props.
+//   Isso garante que a lista sempre reflete o estado real do banco —
+//   não um estado local que pode estar desincronizado.
+//
+// POR QUE useTransition() PARA O REFRESH?
+//   startTransition marca o refresh como operação não-urgente.
+//   isPending fica true durante o refresh — usado para exibir
+//   "atualizando…" no contador de usuários sem bloquear a UI.
 // ─────────────────────────────────────────────────────────────
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/Button'
-import { Toast }  from '@/components/ui/Toast'
-import { FormCadastroUsuario } from './FormCadastroUsuario'
+import { useState, useTransition } from 'react'
+import { useRouter }               from 'next/navigation'
+import { Button }                  from '@/components/ui/Button'
+import { Toast }                   from '@/components/ui/Toast'
+import { FormCadastroUsuario }     from './FormCadastroUsuario'
 import { TabelaAcessos, type UsuarioRow } from './TabelaAcessos'
 
-const DEMO_USUARIOS: UsuarioRow[] = [
-  { id: '1', nome: "Renan D'Alexandro", role: 'proprietario', email: 'renan@andorin.com.br',  telefone: '(11) 98888-0001', ativo: true,  ultimoAcesso: '2026-07-30T10:00:00Z', createdAt: '2024-01-15T00:00:00Z' },
-  { id: '2', nome: 'Camila Rocha',      role: 'professor',    email: 'camila@andorin.com.br', telefone: '(11) 98888-0002', ativo: true,  ultimoAcesso: '2026-07-29T14:30:00Z', createdAt: '2024-03-01T00:00:00Z' },
-  { id: '3', nome: 'Diego Mendes',      role: 'professor',    email: 'diego@andorin.com.br',  telefone: '(11) 98888-0003', ativo: true,  ultimoAcesso: '2026-07-30T09:15:00Z', createdAt: '2024-03-01T00:00:00Z' },
-  { id: '4', nome: 'Ana Lima',          role: 'aluno',        email: 'ana@andorin.com.br',    telefone: null,               ativo: true,  ultimoAcesso: '2026-07-28T11:00:00Z', createdAt: '2025-01-10T00:00:00Z' },
-  { id: '5', nome: 'Rafael Costa',      role: 'aluno',        email: 'rafael@andorin.com.br', telefone: null,               ativo: false, ultimoAcesso: '2026-06-01T08:00:00Z', createdAt: '2025-02-20T00:00:00Z' },
-]
+interface Props {
+  usuarios: UsuarioRow[]
+  meuId:    string
+}
 
-const DEMO_MEU_ID = '1'
+export function AcessosClient({ usuarios, meuId }: Props) {
+  const router = useRouter()
 
-export function AcessosClient() {
-  const [modalAberto, setModalAberto] = useState(false)
-  const [toast,       setToast]       = useState('')
-  const [showToast,   setShowToast]   = useState(false)
+  const [modalAberto,  setModalAberto]  = useState(false)
+  const [toast,        setToast]        = useState('')
+  const [showToast,    setShowToast]    = useState(false)
+  const [isPending,    startTransition] = useTransition()
 
+  // Solicita ao Next.js que re-execute o Server Component pai.
+  // Nenhum dado fica em memória local — tudo vem do banco após o refresh.
   function handleRefresh() {
-    console.log('[demo] refresh da lista de usuários')
+    startTransition(() => {
+      router.refresh()
+    })
   }
 
   function handleSalvo() {
@@ -43,7 +66,10 @@ export function AcessosClient() {
     <>
       <div className="flex items-center justify-between mb-5">
         <p className="text-sm text-gray-mid">
-          {DEMO_USUARIOS.length} usuários cadastrados
+          {usuarios.length}{' '}
+          {usuarios.length === 1 ? 'usuário cadastrado' : 'usuários cadastrados'}
+          {/* isPending: verdadeiro enquanto o refresh do banco está em andamento */}
+          {isPending && ' · atualizando…'}
         </p>
         <Button onClick={() => setModalAberto(true)}>
           + Novo usuário
@@ -51,8 +77,8 @@ export function AcessosClient() {
       </div>
 
       <TabelaAcessos
-        usuarios={DEMO_USUARIOS}
-        meuId={DEMO_MEU_ID}
+        usuarios={usuarios}
+        meuId={meuId}
         onRefresh={handleRefresh}
       />
 

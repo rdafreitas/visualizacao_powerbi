@@ -71,13 +71,22 @@ export interface Database {
       // Separa identidade (profiles) de credenciais de login.
       // A SENHA nunca fica aqui — vive no auth.users (hash bcrypt).
       profiles_credencial: {
-        Relationships: [{
-          foreignKeyName: 'profiles_credencial_profile_id_fkey'
-          columns: ['profile_id']
-          isOneToOne: true
-          referencedRelation: 'profiles'
-          referencedColumns: ['id']
-        }]
+        Relationships: [
+          {
+            foreignKeyName: 'profiles_credencial_profile_id_fkey'
+            columns: ['profile_id']
+            isOneToOne: true
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'profiles_credencial_criado_por_fkey'
+            columns: ['criado_por']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
         Row: {
           profile_id:    string
           email:         string

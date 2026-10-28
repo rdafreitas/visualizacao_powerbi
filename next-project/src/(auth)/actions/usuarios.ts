@@ -313,13 +313,14 @@ export async function listarUsuariosComCredencial(): Promise<
   try {
     await exigirProprietario()
   } catch (err) {
-    return { ok: false, error: (err as Error).message, data: [] } as never
+    return { ok: false, error: (err as Error).message }
   }
 
   const supabase = await createClient()
 
-  // O Supabase detecta a FK entre profiles e profiles_credencial
-  // e faz o JOIN automaticamente com a notação de parênteses.
+  // profiles_credencial tem duas FKs para profiles (profile_id e criado_por).
+  // O embed precisa indicar a FK 1:1 explicitamente, senão o PostgREST
+  // responde PGRST201 (relação ambígua).
   const { data, error } = await supabase
     .from('profiles')
     .select(`
@@ -328,7 +329,7 @@ export async function listarUsuariosComCredencial(): Promise<
       role,
       telefone,
       created_at,
-      profiles_credencial (
+      profiles_credencial!profiles_credencial_profile_id_fkey (
         email,
         ativo,
         ultimo_acesso,
@@ -339,11 +340,17 @@ export async function listarUsuariosComCredencial(): Promise<
     .order('created_at', { ascending: false })
 
   if (error) {
+    console.error('[Acessos] Falha ao listar usuários', {
+      codigo:   error.code,
+      mensagem: error.message,
+      detalhes: error.details,
+      dica:     error.hint,
+    })
     return { ok: false, error: 'Erro ao buscar usuários.' }
   }
 
-  // Normaliza: JOIN 1:1 pode vir como objeto ou array de um item
-  // dependendo da versão do cliente Supabase. Tratamos os dois casos.
+  // FK 1:1: o embed vem como objeto (ou null). O Array.isArray cobre
+  // tipos gerados que declaram a relação como lista.
   const usuarios: UsuarioComCredencial[] = (data ?? []).map((p) => {
     const cred = Array.isArray(p.profiles_credencial)
       ? p.profiles_credencial[0]

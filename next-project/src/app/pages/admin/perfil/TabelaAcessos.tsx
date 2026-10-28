@@ -1,23 +1,31 @@
 'use client'
 // ─────────────────────────────────────────────────────────────
-// TabelaAcessos — versão FRONT-END ESTÁTICO
-// Movido para app/pages/admin/perfil/.
-// Dados demo hardcoded. Ações simuladas (console.log).
-// Quando o back-end for integrado:
-//   1. Receber usuarios e meuId como props reais
-//   2. Restaurar alterarStatusAcesso e redefinirSenha das actions
-//   3. Restaurar onRefresh com router.refresh()
+// src/app/pages/admin/perfil/TabelaAcessos.tsx
+//
+// Tabela de usuários com ações de bloqueio e redefinição de senha.
+// Client Component: gerencia estado do modal de senha e toasts.
+//
+// As ações chamam Server Actions diretamente:
+//   alterarStatusAcesso  ← (auth)/actions/usuarios
+//   redefinirSenha       ← (auth)/actions/usuarios
+//
+// Após cada ação bem-sucedida, onRefresh() é chamado —
+// que dispara router.refresh() no AcessosClient, re-executando
+// o Server Component pai e atualizando a lista com dados do banco.
 // ─────────────────────────────────────────────────────────────
 
-import { useState } from 'react'
-import { Table, Thead, Th, Tbody, Tr, Td } from '@/components/ui/Table'
-import { Badge }  from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
-import { Modal }  from '@/components/ui/Modal'
-import { Input }  from '@/components/ui/Input'
-import { Toast }  from '@/components/ui/Toast'
-import { iniciais, avatarColorByName } from '@/lib/utils'
+import { useState }                              from 'react'
+import { Table, Thead, Th, Tbody, Tr, Td }       from '@/components/ui/Table'
+import { Badge }                                 from '@/components/ui/Badge'
+import { Button }                                from '@/components/ui/Button'
+import { Modal }                                 from '@/components/ui/Modal'
+import { Input }                                 from '@/components/ui/Input'
+import { Toast }                                 from '@/components/ui/Toast'
+import { alterarStatusAcesso, redefinirSenha }   from '@/(auth)/actions/usuarios'
+import { iniciais, avatarColorByName }           from '@/lib/utils'
 
+// ── Tipo exportado — usado pelo AcessosClient e AcessosPage ──
+// Espelha o retorno normalizado de listarUsuariosComCredencial()
 export interface UsuarioRow {
   id:           string
   nome:         string
@@ -38,8 +46,8 @@ const ROLE_LABELS: Record<UsuarioRow['role'], string> = {
 
 interface Props {
   usuarios:  UsuarioRow[]
-  meuId:     string
-  onRefresh: () => void
+  meuId:     string      // id do usuário logado — para marcar a própria linha
+  onRefresh: () => void  // dispara router.refresh() no AcessosClient
 }
 
 function formatDate(iso: string | null) {
@@ -50,35 +58,72 @@ function formatDate(iso: string | null) {
 }
 
 export function TabelaAcessos({ usuarios, meuId, onRefresh }: Props) {
+
+  // Estado do modal de redefinição de senha
   const [modalSenha, setModalSenha] = useState<UsuarioRow | null>(null)
   const [novaSenha,  setNovaSenha]  = useState('')
   const [errSenha,   setErrSenha]   = useState('')
-  const [toast,      setToast]      = useState('')
-  const [showToast,  setShowToast]  = useState(false)
+  const [loadSenha,  setLoadSenha]  = useState(false)
 
-  function showMsg(msg: string) { setToast(msg); setShowToast(true) }
+  // Toast de feedback para ações
+  const [toast,     setToast]     = useState('')
+  const [showToast, setShowToast] = useState(false)
 
-  function handleToggleAtivo(u: UsuarioRow) {
-    console.log('[demo] toggle ativo:', u.nome, !u.ativo)
-    showMsg(u.ativo ? `Acesso de ${u.nome} desativado.` : `Acesso de ${u.nome} ativado.`)
+  function showMsg(msg: string) {
+    setToast(msg)
+    setShowToast(true)
+  }
+
+  // ── Ativar / Bloquear ──────────────────────────────────────
+  async function handleToggleAtivo(u: UsuarioRow) {
+    // ActionResult: result.ok determina o fluxo — sem necessidade de ?.
+    const result = await alterarStatusAcesso(u.id, !u.ativo)
+
+    if (!result.ok) {
+      showMsg(result.error)
+      return
+    }
+
+    showMsg(
+      u.ativo
+        ? `Acesso de ${u.nome} bloqueado.`
+        : `Acesso de ${u.nome} reativado.`
+    )
+    // Atualiza a lista buscando dados frescos do banco
     onRefresh()
   }
 
-  function handleRedefinirSenha() {
+  // ── Redefinir senha ────────────────────────────────────────
+  async function handleRedefinirSenha() {
     if (!modalSenha) return
     setErrSenha('')
-    if (novaSenha.length < 6) { setErrSenha('Mínimo 6 caracteres.'); return }
-    console.log('[demo] redefinir senha:', modalSenha.nome)
+
+    if (novaSenha.length < 6) {
+      setErrSenha('A senha deve ter pelo menos 6 caracteres.')
+      return
+    }
+
+    setLoadSenha(true)
+    const result = await redefinirSenha(modalSenha.id, novaSenha)
+    setLoadSenha(false)
+
+    if (!result.ok) {
+      setErrSenha(result.error)
+      return
+    }
+
     setModalSenha(null)
     setNovaSenha('')
-    showMsg(`Senha de ${modalSenha.nome} redefinida.`)
+    showMsg(`Senha de ${modalSenha.nome} redefinida com sucesso.`)
   }
 
+  // ── Estado vazio ───────────────────────────────────────────
   if (usuarios.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
         <span className="text-4xl opacity-30">👤</span>
         <p className="text-sm text-gray-mid">Nenhum usuário cadastrado ainda.</p>
+        <p className="text-xs text-gray-mid">Use o botão "+ Novo usuário" para começar.</p>
       </div>
     )
   }
@@ -100,52 +145,86 @@ export function TabelaAcessos({ usuarios, meuId, onRefresh }: Props) {
         <Tbody>
           {usuarios.map((u) => (
             <Tr key={u.id}>
+
+              {/* Avatar + nome + telefone */}
               <Td>
                 <div className="flex items-center gap-3">
                   <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-off-white flex-shrink-0"
+                    className="w-8 h-8 rounded-full flex items-center justify-center
+                                text-xs font-bold text-off-white flex-shrink-0"
                     style={{ background: avatarColorByName(u.nome) }}
                   >
                     {iniciais(u.nome)}
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-dark leading-tight">{u.nome}</p>
-                    {u.telefone && <p className="text-[11px] text-gray-mid">{u.telefone}</p>}
+                    <p className="font-semibold text-gray-dark leading-tight">
+                      {u.nome}
+                    </p>
+                    {u.telefone && (
+                      <p className="text-[11px] text-gray-mid">{u.telefone}</p>
+                    )}
                   </div>
                 </div>
               </Td>
+
               <Td className="text-gray-mid">{u.email}</Td>
+
+              {/* Badge de role */}
               <Td>
-                <Badge variant={u.role}>{ROLE_LABELS[u.role]}</Badge>
+                <Badge variant={u.role}>
+                  {ROLE_LABELS[u.role]}
+                </Badge>
               </Td>
+
+              {/* Status ativo/bloqueado */}
               <Td>
                 <span className={[
                   'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold',
-                  u.ativo ? 'bg-green-light/40 text-chumbo' : 'bg-red/10 text-red',
+                  u.ativo
+                    ? 'bg-green-light/40 text-chumbo'
+                    : 'bg-red/10 text-red',
                 ].join(' ')}>
                   <span className={`w-1.5 h-1.5 rounded-full ${u.ativo ? 'bg-chumbo' : 'bg-red'}`} />
                   {u.ativo ? 'Ativo' : 'Bloqueado'}
                 </span>
               </Td>
+
               <Td className="text-gray-mid text-sm">{formatDate(u.ultimoAcesso)}</Td>
               <Td className="text-gray-mid text-sm">{formatDate(u.createdAt)}</Td>
+
+              {/* Ações — ocultas na própria linha */}
               <Td>
                 <div className="flex items-center justify-end gap-2">
+
                   {u.id !== meuId && (
-                    <Button size="sm" variant="outline"
-                      onClick={() => { setModalSenha(u); setNovaSenha(''); setErrSenha('') }}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setModalSenha(u)
+                        setNovaSenha('')
+                        setErrSenha('')
+                      }}
+                    >
                       🔑 Senha
                     </Button>
                   )}
+
                   {u.id !== meuId && (
-                    <Button size="sm" variant={u.ativo ? 'danger' : 'secondary'}
-                      onClick={() => handleToggleAtivo(u)}>
+                    <Button
+                      size="sm"
+                      variant={u.ativo ? 'danger' : 'secondary'}
+                      onClick={() => handleToggleAtivo(u)}
+                    >
                       {u.ativo ? 'Bloquear' : 'Ativar'}
                     </Button>
                   )}
+
+                  {/* Linha do próprio usuário — sem botões de ação */}
                   {u.id === meuId && (
                     <span className="text-xs text-gray-mid italic">Você</span>
                   )}
+
                 </div>
               </Td>
             </Tr>
@@ -153,6 +232,7 @@ export function TabelaAcessos({ usuarios, meuId, onRefresh }: Props) {
         </Tbody>
       </Table>
 
+      {/* Modal: redefinir senha */}
       <Modal
         open={!!modalSenha}
         onClose={() => setModalSenha(null)}
@@ -160,15 +240,20 @@ export function TabelaAcessos({ usuarios, meuId, onRefresh }: Props) {
         maxWidth="max-w-sm"
         footer={
           <>
-            <Button variant="ghost" onClick={() => setModalSenha(null)}>Cancelar</Button>
-            <Button onClick={handleRedefinirSenha}>Salvar nova senha</Button>
+            <Button variant="ghost" onClick={() => setModalSenha(null)} disabled={loadSenha}>
+              Cancelar
+            </Button>
+            <Button onClick={handleRedefinirSenha} loading={loadSenha}>
+              Salvar nova senha
+            </Button>
           </>
         }
       >
         <div className="flex flex-col gap-4">
           <p className="text-sm text-gray-mid">
-            Digite a nova senha para <strong className="text-gray-dark">{modalSenha?.nome}</strong>.
-            Ela vai substituir a senha atual imediatamente.
+            Digite a nova senha para{' '}
+            <strong className="text-gray-dark">{modalSenha?.nome}</strong>.
+            Ela substituirá a senha atual imediatamente.
           </p>
           <Input
             id="nova-senha"
@@ -179,6 +264,7 @@ export function TabelaAcessos({ usuarios, meuId, onRefresh }: Props) {
             onChange={(e) => setNovaSenha(e.target.value)}
             autoComplete="new-password"
             error={errSenha}
+            showPasswordToggle
           />
         </div>
       </Modal>
