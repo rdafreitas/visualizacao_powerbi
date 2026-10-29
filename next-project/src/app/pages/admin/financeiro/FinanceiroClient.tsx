@@ -31,7 +31,6 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useState, useTransition }  from 'react'
-import { useRouter }                from 'next/navigation'
 import { PageHeader }               from '@/components/layout/PageHeader'
 import { Card, CardTitle }          from '@/components/ui/Card'
 import { Tabs }                     from '@/components/ui/Tabs'
@@ -39,10 +38,13 @@ import { Button }                   from '@/components/ui/Button'
 import { Input }                    from '@/components/ui/Input'
 import { Modal }                    from '@/components/ui/Modal'
 import { Toast }                    from '@/components/ui/Toast'
+import { IconLapis }                from '@/components/ui/icons'
 import { formatBRL, formatBRLCompact } from '@/lib/utils'
 import {
   listarTransacoes,
+  resumoFinanceiro,
   criarTransacao,
+  atualizarTransacao,
   excluirTransacao,
   type CriarTransacaoInput,
   type ResumoFinanceiro,
@@ -97,6 +99,22 @@ function formatarMesLabel(mes: string): string {
   return data.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
 }
 
+// Data local no formato 'YYYY-MM-DD'. toISOString() usaria UTC e, à
+// noite no Brasil, devolveria o dia seguinte.
+function hojeLocal(): string {
+  const d = new Date()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${mm}-${dd}`
+}
+
+// 'YYYY-MM-DD' → 'DD/MM/YYYY' sem passar por Date (new Date('YYYY-MM-DD')
+// é interpretado como UTC e exibiria o dia anterior no fuso do Brasil).
+function formatarDataBR(data: string): string {
+  const [ano, mes, dia] = data.substring(0, 10).split('-')
+  return `${dia}/${mes}/${ano}`
+}
+
 // Retorna os últimos 12 meses para o seletor
 function gerarMeses(): { value: string; label: string }[] {
   const meses = []
@@ -141,7 +159,6 @@ function BarraHorizontal({
 // ── Componente principal ──────────────────────────────────────
 
 export function FinanceiroClient({ resumo, transacoesIniciais, mesInicial }: Props) {
-  const router = useRouter()
 
   // ── Estado do mês e lista ────────────────────────────────────
   const [mesSelecionado, setMesSelecionado] = useState(mesInicial)
@@ -156,14 +173,19 @@ export function FinanceiroClient({ resumo, transacoesIniciais, mesInicial }: Pro
   // ── Estado da aba do gráfico ─────────────────────────────────
   const [tabGrafico, setTabGrafico] = useState('receita_despesa')
 
-  // ── Estado do modal de nova transação ────────────────────────
+  // ── Estado do modal de transação (criar / editar) ────────────
   const [modalAberto, setModalAberto] = useState(false)
+  // null = criando; preenchido = editando essa transação
+  const [editando,    setEditando]    = useState<TransacaoRow | null>(null)
   const [tipo,        setTipo]        = useState<TipoTransacao>('receita')
   const [categoria,   setCategoria]   = useState('')
   const [descricao,   setDescricao]   = useState('')
   const [valor,       setValor]       = useState('')
   const [metodo,      setMetodo]      = useState<MetodoPagamento>('pix')
-  const [dataInput,   setDataInput]   = useState(new Date().toISOString().split('T')[0])
+  const [dataInput,   setDataInput]   = useState(hojeLocal())
+  // Mês de referência ('YYYY-MM'): acompanha a data até o usuário editá-lo
+  const [mesRef,      setMesRef]      = useState(hojeLocal().substring(0, 7))
+  const [mesRefManual, setMesRefManual] = useState(false)
   const [erroForm,    setErroForm]    = useState('')
   const [salvando,    setSalvando]    = useState(false)
 
@@ -212,25 +234,79 @@ export function FinanceiroClient({ resumo, transacoesIniciais, mesInicial }: Pro
     setMesSelecionado(novoMes)
     setCarregandoMes(true)
 
-    // Chama a Server Action diretamente do Client Component.
+    // Chama as Server Actions diretamente do Client Component.
     // O Next.js roda no servidor — dados financeiros não aparecem
     // como requests visíveis no DevTools do browser.
-    const resultado = await listarTransacoes(novoMes)
-    if (resultado.ok) {
-      setTransacoes(resultado.data as TransacaoRow[])
-    }
+    await recarregarMes(novoMes)
 
     setCarregandoMes(false)
   }
 
-  // ── Submeter nova transação ───────────────────────────────────
-  async function handleCriarTransacao() {
+  // Rebusca lista e KPIs do mês. Os KPIs ficam em estado local
+  // (useState só lê a prop `resumo` na montagem), então precisam
+  // ser atualizados explicitamente após qualquer mutação.
+  async function recarregarMes(mes: string) {
+    const [lista, novoResumo] = await Promise.all([
+      listarTransacoes(mes),
+      resumoFinanceiro(mes),
+    ])
+    if (lista.ok) setTransacoes(lista.data as TransacaoRow[])
+    setResumoLocal(novoResumo)
+  }
+
+  // ── Abrir modal: nova transação ──────────────────────────────
+  function abrirNovaTransacao() {
+    const hoje = hojeLocal()
+    setEditando(null)
+    setTipo('receita')
+    setCategoria(''); setDescricao(''); setValor('')
+    setMetodo('pix')
+    setDataInput(hoje)
+    setMesRef(hoje.substring(0, 7))
+    setMesRefManual(false)
+    setErroForm('')
+    setModalAberto(true)
+  }
+
+  // ── Abrir modal: editar transação ────────────────────────────
+  function abrirEdicao(t: TransacaoRow) {
+    const ref = t.mes.substring(0, 7)
+    setEditando(t)
+    setTipo(t.tipo)
+    setCategoria(t.categoria)
+    setDescricao(t.descricao ?? '')
+    setValor(String(t.valor))
+    setMetodo(t.metodo_pagamento ?? 'pix')
+    setDataInput(t.data.substring(0, 10))
+    setMesRef(ref)
+    // Se a referência já difere da data, preserva a escolha do usuário
+    setMesRefManual(ref !== t.data.substring(0, 7))
+    setErroForm('')
+    setModalAberto(true)
+  }
+
+  function fecharModal() {
+    setModalAberto(false)
+    setErroForm('')
+  }
+
+  // Ao mudar a data, o mês de referência acompanha, a menos que
+  // o usuário já o tenha ajustado manualmente.
+  function handleMudancaData(novaData: string) {
+    setDataInput(novaData)
+    if (!mesRefManual && novaData) setMesRef(novaData.substring(0, 7))
+  }
+
+  // ── Submeter transação (criar ou editar) ─────────────────────
+  async function handleSalvarTransacao() {
     setErroForm('')
 
     const valorNum = parseFloat(valor.replace(',', '.'))
     if (!categoria)       return setErroForm('Selecione uma categoria.')
     if (isNaN(valorNum) || valorNum <= 0) return setErroForm('Valor inválido.')
     if (!dataInput)       return setErroForm('Informe a data.')
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(mesRef))
+      return setErroForm('Informe o mês de referência.')
 
     setSalvando(true)
 
@@ -241,30 +317,33 @@ export function FinanceiroClient({ resumo, transacoesIniciais, mesInicial }: Pro
       valor:            valorNum,
       metodo_pagamento: metodo,
       data:             dataInput,
+      mes_referencia:   mesRef,
     }
 
-    const resultado = await criarTransacao(input)
-    setSalvando(false)
+    const resultado = editando
+      ? await atualizarTransacao(editando.id, input)
+      : await criarTransacao(input)
 
     if (!resultado.ok) {
+      setSalvando(false)
       setErroForm(resultado.error)
       return
     }
 
-    // Fecha modal e limpa form
+    // Atualiza lista e KPIs do mês em exibição antes de fechar o modal
+    await recarregarMes(mesSelecionado)
+    setSalvando(false)
     setModalAberto(false)
+    setEditando(null)
     setCategoria(''); setDescricao(''); setValor('')
-    setErroForm('')
 
-    // Rebusca a lista do mês atual para refletir a nova transação
-    const lista = await listarTransacoes(mesSelecionado)
-    if (lista.ok) setTransacoes(lista.data as TransacaoRow[])
-
-    // revalidatePath já foi chamado dentro da Server Action.
-    // router.refresh() força o layout a rebuscar o resumo atualizado.
-    router.refresh()
-
-    setToast('Transação registrada com sucesso.')
+    // Se a referência é de outro mês, avisa onde o lançamento foi parar
+    const acao = editando ? 'atualizada' : 'registrada'
+    setToast(
+      mesRef === mesSelecionado
+        ? `Transação ${acao} com sucesso.`
+        : `Transação ${acao} em ${formatarMesLabel(mesRef)}.`
+    )
     setShowToast(true)
   }
 
@@ -280,9 +359,9 @@ export function FinanceiroClient({ resumo, transacoesIniciais, mesInicial }: Pro
       }
 
       // Remove da lista local imediatamente (UX responsiva)
-      // antes do router.refresh() atualizar o servidor
+      // e recalcula os KPIs do mês
       setTransacoes((prev) => prev.filter((t) => t.id !== id))
-      router.refresh()
+      await recarregarMes(mesSelecionado)
 
       setToast('Transação excluída.')
       setShowToast(true)
@@ -337,7 +416,7 @@ export function FinanceiroClient({ resumo, transacoesIniciais, mesInicial }: Pro
             ))}
           </select>
 
-          <Button onClick={() => setModalAberto(true)} disabled={carregandoMes}>
+          <Button onClick={abrirNovaTransacao} disabled={carregandoMes}>
             + Nova transação
           </Button>
         </div>
@@ -478,8 +557,10 @@ export function FinanceiroClient({ resumo, transacoesIniciais, mesInicial }: Pro
                     <p className="text-xs text-gray-mid truncate">{t.descricao}</p>
                   )}
                   <p className="text-[10px] text-gray-mid mt-0.5">
-                    {new Date(t.data).toLocaleDateString('pt-BR')}
+                    {formatarDataBR(t.data)}
                     {t.metodo_pagamento && ` · ${t.metodo_pagamento.toUpperCase()}`}
+                    {t.mes.substring(0, 7) !== t.data.substring(0, 7) &&
+                      ` · Ref.: ${formatarMesLabel(t.mes.substring(0, 7))}`}
                   </p>
                 </div>
 
@@ -495,12 +576,27 @@ export function FinanceiroClient({ resumo, transacoesIniciais, mesInicial }: Pro
                   </p>
                 </div>
 
+                {/* Editar */}
+                <button
+                  type="button"
+                  onClick={() => abrirEdicao(t)}
+                  disabled={isPending}
+                  title="Editar"
+                  className="text-gray-mid hover:text-chumbo transition-colors
+                             disabled:opacity-40 ml-1 cursor-pointer"
+                  aria-label={`Editar lançamento ${t.categoria}`}
+                >
+                  <IconLapis width={14} height={14} />
+                </button>
+
                 {/* Excluir */}
                 <button
+                  type="button"
                   onClick={() => handleExcluir(t.id)}
                   disabled={isPending}
+                  title="Excluir"
                   className="text-gray-mid hover:text-red transition-colors
-                             disabled:opacity-40 ml-1"
+                             disabled:opacity-40"
                   aria-label={`Excluir lançamento ${t.categoria}`}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -519,22 +615,22 @@ export function FinanceiroClient({ resumo, transacoesIniciais, mesInicial }: Pro
         )}
       </Card>
 
-      {/* Modal de nova transação */}
+      {/* Modal de transação (nova / edição) */}
       <Modal
         open={modalAberto}
-        onClose={() => { setModalAberto(false); setErroForm('') }}
-        title="Nova transação"
+        onClose={fecharModal}
+        title={editando ? 'Editar transação' : 'Nova transação'}
         maxWidth="max-w-md"
         footer={
           <>
             <Button
               variant="ghost"
-              onClick={() => { setModalAberto(false); setErroForm('') }}
+              onClick={fecharModal}
               disabled={salvando}
             >
               Cancelar
             </Button>
-            <Button onClick={handleCriarTransacao} loading={salvando}>
+            <Button onClick={handleSalvarTransacao} loading={salvando}>
               Salvar
             </Button>
           </>
@@ -636,14 +732,24 @@ export function FinanceiroClient({ resumo, transacoesIniciais, mesInicial }: Pro
             </div>
           </div>
 
-          <Input
-            id="data"
-            label="Data"
-            type="date"
-            value={dataInput}
-            onChange={(e) => setDataInput(e.target.value)}
-            disabled={salvando}
-          />
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              id="data"
+              label="Data"
+              type="date"
+              value={dataInput}
+              onChange={(e) => handleMudancaData(e.target.value)}
+              disabled={salvando}
+            />
+            <Input
+              id="mes-referencia"
+              label="Mês Referência"
+              type="month"
+              value={mesRef}
+              onChange={(e) => { setMesRef(e.target.value); setMesRefManual(true) }}
+              disabled={salvando}
+            />
+          </div>
 
           {erroForm && (
             <div

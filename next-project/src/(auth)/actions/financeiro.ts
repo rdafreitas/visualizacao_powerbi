@@ -110,9 +110,9 @@ export async function listarTransacoes(
 //
 // Insere uma nova transação (receita ou despesa).
 //
-// O campo `mes` é calculado automaticamente no servidor
-// a partir da data informada — o frontend não precisa saber
-// dessa regra de negócio. Princípio: lógica de negócio no servidor.
+// O campo `mes` (mês de referência) usa o `mes_referencia` informado
+// pelo proprietário; se omitido, é derivado da data. Assim um
+// pagamento de fim de outubro pode ser lançado em novembro.
 //
 // O campo criado_por registra qual proprietário inseriu —
 // audit trail permanente no banco.
@@ -127,6 +127,51 @@ export interface CriarTransacaoInput {
   valor:             number
   metodo_pagamento?: MetodoPagamento
   data:              string   // formato 'YYYY-MM-DD'
+  mes_referencia?:   string   // formato 'YYYY-MM' — padrão: mês da data
+}
+
+const TIPOS_VALIDOS:   readonly string[] = ['receita', 'despesa']
+const METODOS_VALIDOS: readonly string[] = ['pix', 'cartao', 'boleto', 'transferencia', 'dinheiro']
+const REGEX_DATA = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/
+const REGEX_MES  = /^\d{4}-(0[1-9]|1[0-2])$/
+
+// Valida o input e monta os campos graváveis (sem criado_por).
+// Compartilhado por criar e atualizar para manter as regras idênticas.
+function montarRegistro(input: CriarTransacaoInput):
+  | { ok: true; registro: {
+      tipo: TipoTransacao; categoria: string; descricao: string | null
+      valor: number; metodo_pagamento: MetodoPagamento | null
+      data: string; mes: string
+    } }
+  | { ok: false; error: string } {
+  if (!TIPOS_VALIDOS.includes(input.tipo))
+    return { ok: false, error: 'Tipo inválido.' }
+  if (!Number.isFinite(input.valor) || input.valor <= 0)
+    return { ok: false, error: 'O valor deve ser maior que zero.' }
+  if (!input.categoria?.trim())
+    return { ok: false, error: 'Categoria é obrigatória.' }
+  if (!input.data || !REGEX_DATA.test(input.data))
+    return { ok: false, error: 'Data inválida.' }
+  if (input.metodo_pagamento && !METODOS_VALIDOS.includes(input.metodo_pagamento))
+    return { ok: false, error: 'Método de pagamento inválido.' }
+  if (input.mes_referencia && !REGEX_MES.test(input.mes_referencia))
+    return { ok: false, error: 'Mês de referência inválido.' }
+
+  // '2026-07-15' → '2026-07'; o mês de referência informado tem prioridade
+  const mesRef = input.mes_referencia || input.data.substring(0, 7)
+
+  return {
+    ok: true,
+    registro: {
+      tipo:             input.tipo,
+      categoria:        input.categoria.trim(),
+      descricao:        input.descricao?.trim() || null,
+      valor:            input.valor,
+      metodo_pagamento: input.metodo_pagamento || null,
+      data:             input.data,
+      mes:              `${mesRef}-01`,
+    },
+  }
 }
 
 export async function criarTransacao(
@@ -139,39 +184,66 @@ export async function criarTransacao(
     return { ok: false, error: (err as Error).message }
   }
 
-  // ── Validações no servidor ───────────────────────────────────
   // O frontend valida também, mas o servidor é a fonte de verdade.
-  if (!input.tipo)               return { ok: false, error: 'Tipo inválido.' }
-  if (input.valor <= 0)          return { ok: false, error: 'O valor deve ser maior que zero.' }
-  if (!input.categoria?.trim())  return { ok: false, error: 'Categoria é obrigatória.' }
-  if (!input.data)               return { ok: false, error: 'Data é obrigatória.' }
-
-  // Calcula o mes automaticamente:
-  // '2026-07-15'.substring(0, 7) → '2026-07' → '2026-07-01'
-  const mes = `${input.data.substring(0, 7)}-01`
+  const validado = montarRegistro(input)
+  if (!validado.ok) return validado
 
   const supabase = await createClient()
 
   const { error } = await supabase
     .from('transacoes')
-    .insert({
-      tipo:             input.tipo,
-      categoria:        input.categoria.trim(),
-      descricao:        input.descricao?.trim() || null,
-      valor:            input.valor,
-      metodo_pagamento: input.metodo_pagamento || null,
-      data:             input.data,
-      mes,
-      criado_por:       profile.id,
-    })
+    .insert({ ...validado.registro, criado_por: profile.id })
 
   if (error) {
+    console.error('[financeiro] criarTransacao:', error.code, error.message)
     return { ok: false, error: 'Erro ao salvar transação.' }
   }
 
   // Invalida o cache do Server Component da página de financeiro.
-  // Diferença de router.refresh(): revalidatePath age no servidor
-  // imediatamente — não precisa de round-trip do browser.
+  revalidatePath('/pages/admin/financeiro')
+  return { ok: true, data: undefined }
+}
+
+// ─────────────────────────────────────────────────────────────
+// ACTION: atualizarTransacao
+//
+// Edita uma transação existente com as mesmas regras de validação
+// da criação. criado_por (audit trail) não é alterado.
+// ─────────────────────────────────────────────────────────────
+export async function atualizarTransacao(
+  id:    string,
+  input: CriarTransacaoInput
+): Promise<ActionResult> {
+  try {
+    await exigirProprietario()
+  } catch (err) {
+    return { ok: false, error: (err as Error).message }
+  }
+
+  if (!id) return { ok: false, error: 'ID inválido.' }
+
+  const validado = montarRegistro(input)
+  if (!validado.ok) return validado
+
+  const supabase = await createClient()
+
+  // .select('id') permite detectar update sem linha afetada
+  // (id inexistente ou bloqueado pelo RLS).
+  const { data, error } = await supabase
+    .from('transacoes')
+    .update(validado.registro)
+    .eq('id', id)
+    .select('id')
+
+  if (error) {
+    console.error('[financeiro] atualizarTransacao:', error.code, error.message)
+    return { ok: false, error: 'Erro ao atualizar transação.' }
+  }
+
+  if (!data || data.length === 0) {
+    return { ok: false, error: 'Transação não encontrada.' }
+  }
+
   revalidatePath('/pages/admin/financeiro')
   return { ok: true, data: undefined }
 }
