@@ -74,13 +74,40 @@ export const LOCAIS_AULA = [
 // ── Roteamento ────────────────────────────────────────────────
 // PUBLIC_ROUTES: rotas que não exigem autenticação.
 // O login vive em src/app/page.tsx → URL é '/' (raiz do site).
-// Não existe /pages/login neste projeto.
 export const PUBLIC_ROUTES = ['/'] as const
 
 // LOGIN_ROUTE: destino dos redirects quando não há sessão.
-// Centralizado aqui para que uma eventual mudança de rota
-// do login (ex: mover para /entrar) afete apenas esta linha.
+// Centralizado aqui — muda apenas esta linha se o login mudar de rota.
 export const LOGIN_ROUTE = '/' as const
+
+// ── Categorias financeiras ────────────────────────────────────
+// Usadas no formulário de cadastro de transações (FinanceiroClient).
+// Mantidas em constants.ts para que o formulário e as validações
+// do servidor compartilhem a mesma fonte de verdade.
+// Se uma categoria for adicionada aqui, aparece automaticamente
+// no formulário sem precisar alterar outros arquivos.
+export const CATEGORIAS_RECEITA = [
+  'Mensalidade — Básico',
+  'Mensalidade — Completo',
+  'Mensalidade — Premium',
+  'Taxa de matrícula',
+  'Aula avulsa',
+  'Venda de material',
+  'Caixa',
+  'Outros',
+] as const
+
+export const CATEGORIAS_DESPESA = [
+  'Aluguel',
+  'Energia elétrica',
+  'Internet',
+  'Folha — professor',
+  'Material didático',
+  'Manutenção',
+  'Contabilidade',
+  'Plataforma digital',
+  'Outros',
+] as const
 
 // ── Gráficos financeiros (demo 6 meses) ───────────────────────
 export const MESES_FIN_LABELS = ['Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul']
