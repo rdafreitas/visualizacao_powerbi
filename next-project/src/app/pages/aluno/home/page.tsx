@@ -1,118 +1,215 @@
-import { PageHeader } from '@/components/layout/PageHeader'
-import { Card, CardTitle } from '@/components/ui/Card'
+// ─────────────────────────────────────────────────────────────
+// src/app/pages/aluno/home/page.tsx
+//
+// Server Component assíncrono — busca todos os dados em paralelo
+// e passa como props para AlunoHomeClient (interatividade).
+//
+// DADOS BUSCADOS EM PARALELO:
+//   1. Inscrições da semana do aluno (aulas + instrutor)
+//   2. Todas as aulas da semana (para "disponíveis para você")
+//   3. Última aula com presença sem avaliação (slot de avaliação)
+//   4. Ranking (profiles ORDER BY xp_total)
+//   5. Habilidades do aluno (COUNT)
+//   6. Taxa de presença do mês (dois COUNTs)
+// ─────────────────────────────────────────────────────────────
+
+import { requireAuth }      from '@/(auth)/session'
+import { createClient }     from '@/lib/supabase/server'
+import { AlunoHomeClient }  from './AlunoHomeClient'
 
 export const metadata = { title: 'Início — Andorin' }
 
-const AULAS_SEMANA = [
-  { dia: 'SEG', num: '28', nome: '🎀 Tecido Circense',   sub: '09h · Studio A · Camila Rocha',         status: 'presente',  statusColor: 'bg-green-light/40 text-chumbo' },
-  { dia: 'QUA', num: '30', nome: '🤸 Acrobacia de Solo', sub: '10h30 · Sala Principal · Diego Mendes',  status: 'Hoje',      statusColor: 'bg-bordo/10 text-bordo'         },
-  { dia: 'SEX', num: '01', nome: '🎀 Tecido Circense',   sub: '09h · Studio A · Camila Rocha',         status: 'Em 2 dias', statusColor: 'bg-gray-bg text-gray-mid'       },
-]
+export default async function AlunoHomePage() {
 
-const DISPONIVEIS = [
-  { emoji: '🎀', nome: 'Tecido Circense',   sub: 'Qui · 09h · 4 vagas',   lotada: false },
-  { emoji: '🪢', nome: 'Malabares',         sub: 'Sex · 14h · 11 vagas',  lotada: false },
-  { emoji: '🤸', nome: 'Acrobacia de Solo', sub: 'Sáb · 10h30 · 6 vagas', lotada: false },
-  { emoji: '🎠', nome: 'Contorcionismo',    sub: 'Sáb · 17h · Lotada',    lotada: true  },
-]
+  const profile  = await requireAuth()
+  const supabase = await createClient()
 
-const METRICAS_PROGRESSO = [
-  { valor: '90%', label: 'Presença Jul',  color: 'text-bordo'    },
-  { valor: '12',  label: 'Habilidades',  color: 'text-orange-dk' },
-  { valor: '246', label: 'XP Total',     color: 'text-chumbo'    },
-  { valor: '4°',  label: 'No ranking',   color: 'text-gray-dark' },
-]
+  const agora    = new Date()
+  const hojeISO  = agora.toISOString().split('T')[0]
+  const mesAtual = agora.toISOString().substring(0, 7)
+  const em7Dias  = new Date(agora.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString()
+  const inicioMes = `${mesAtual}-01T00:00:00`
 
-export default function AlunoHomePage() {
+  // ── Queries em paralelo ─────────────────────────────────────
+  const [
+    inscricoesResult,
+    aulasDisponiveisResult,
+    avaliacaoPendenteResult,
+    rankingResult,
+    habilidadesResult,
+    totalInscResult,
+    totalPresResult,
+  ] = await Promise.all([
+
+    // 1. Inscrições do aluno nos próximos 7 dias
+    supabase
+      .from('inscricoes')
+      .select(`
+        id, presente, lista_espera,
+        aulas!inscricoes_aula_id_fkey (
+          id, nome, emoji, inicio, fim, local,
+          profiles!aulas_instrutor_id_fkey ( nome )
+        )
+      `)
+      .eq('aluno_id', profile.id)
+      .eq('lista_espera', false)
+      .gte('aulas(inicio)', agora.toISOString())
+      .lte('aulas(inicio)', em7Dias)
+      .order('aulas(inicio)', { ascending: true })
+      .limit(7),
+
+    // 2. Aulas abertas da semana (para "disponíveis para você")
+    supabase
+      .from('aulas')
+      .select(`
+        id, nome, emoji, inicio, vagas, local,
+        inscricoes ( id )
+      `)
+      .eq('status', 'agendada')
+      .gte('inicio', agora.toISOString())
+      .lte('inicio', em7Dias)
+      .order('inicio', { ascending: true })
+      .limit(20),
+
+    // 3. Última aula com presença sem avaliação
+    supabase
+      .from('inscricoes')
+      .select(`
+        id,
+        aulas!inscricoes_aula_id_fkey ( id, nome, emoji, inicio, local ),
+        avaliacoes ( id )
+      `)
+      .eq('aluno_id', profile.id)
+      .eq('presente', true)
+      .lt('aulas(inicio)', agora.toISOString())
+      .is('avaliacoes', null)
+      .order('aulas(inicio)', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+
+    // 4. Ranking geral (todos os alunos por XP)
+    supabase
+      .from('profiles')
+      .select('id, xp_total')
+      .eq('role', 'aluno')
+      .order('xp_total', { ascending: false }),
+
+    // 5. Habilidades do aluno (COUNT)
+    supabase
+      .from('aluno_habilidades')
+      .select('*', { count: 'exact', head: true })
+      .eq('aluno_id', profile.id),
+
+    // 6a. Total de inscrições do mês
+    supabase
+      .from('inscricoes')
+      .select('id', { count: 'exact', head: true })
+      .eq('aluno_id', profile.id)
+      .eq('lista_espera', false)
+      .gte('aulas(inicio)', inicioMes),
+
+    // 6b. Total de presenças do mês
+    supabase
+      .from('inscricoes')
+      .select('id', { count: 'exact', head: true })
+      .eq('aluno_id', profile.id)
+      .eq('presente', true)
+      .eq('lista_espera', false)
+      .gte('aulas(inicio)', inicioMes),
+  ])
+
+  // ── Processamento ───────────────────────────────────────────
+
+  // IDs de aulas que o aluno já está inscrito — para filtrar disponíveis
+  const inscricoesData  = inscricoesResult.data ?? []
+  const aulasInscritasIds = new Set(
+    inscricoesData.map((i) => {
+      const a = Array.isArray(i.aulas) ? i.aulas[0] : i.aulas
+      return a?.id
+    }).filter(Boolean)
+  )
+
+  // Aulas disponíveis = semana - já inscritas, com vagas restantes calculadas
+  const aulasData = aulasDisponiveisResult.data ?? []
+  const aulasDisponiveis = aulasData
+    .filter((a) => !aulasInscritasIds.has(a.id))
+    .map((a) => {
+      const inscritos = Array.isArray(a.inscricoes) ? a.inscricoes.length : 0
+      return {
+        id:          a.id,
+        nome:        a.nome,
+        emoji:       a.emoji,
+        inicio:      a.inicio,
+        local:       a.local,
+        vagas:       a.vagas,
+        inscritos,
+        vagasLivres: Math.max(0, a.vagas - inscritos),
+      }
+    })
+    .slice(0, 4)   // máximo 4 cards na seção "disponíveis"
+
+  // Aulas da semana do aluno com status calculado
+  const minhasAulas = inscricoesData.map((i) => {
+    const aula     = Array.isArray(i.aulas) ? i.aulas[0] : i.aulas
+    const instrutor = aula
+      ? (Array.isArray(aula.profiles) ? aula.profiles[0] : aula.profiles)
+      : null
+    return {
+      inscricaoId:    i.id,
+      aulaId:         aula?.id         ?? '',
+      nome:           aula?.nome       ?? 'Aula',
+      emoji:          aula?.emoji      ?? '🎪',
+      inicio:         aula?.inicio     ?? '',
+      local:          aula?.local      ?? null,
+      instrutor:      instrutor?.nome  ?? null,
+      presente:       i.presente,
+    }
+  })
+
+  // Ranking
+  const rankingAlunos  = rankingResult.data ?? []
+  const posicao        = rankingAlunos.findIndex((p) => p.id === profile.id) + 1
+
+  // Presença do mês
+  const totalInsc  = totalInscResult.count  ?? 0
+  const totalPres  = totalPresResult.count  ?? 0
+  const taxaPres   = totalInsc > 0 ? Math.round((totalPres / totalInsc) * 100) : 0
+
+  const totalHabilidades = habilidadesResult.count ?? 0
+
+  // Avaliação pendente
+  const avPendente = avaliacaoPendenteResult.data
+  let aulaPendente: { inscricaoId: string; aulaId: string; nome: string; emoji: string | null; inicio: string; local: string | null } | null = null
+  if (avPendente) {
+    const aulaAv = Array.isArray(avPendente.aulas) ? avPendente.aulas[0] : avPendente.aulas
+    if (aulaAv) {
+      aulaPendente = {
+        inscricaoId: avPendente.id,
+        aulaId:      aulaAv.id,
+        nome:        aulaAv.nome,
+        emoji:       aulaAv.emoji,
+        inicio:      aulaAv.inicio,
+        local:       aulaAv.local,
+      }
+    }
+  }
+
   return (
-    <>
-      <PageHeader
-        title="Bem-vinda, Ana 🤸"
-        subtitle="Plano Completo · Tecido Circense + Acrobacia de Solo"
-      />
-
-      {/* Slot de avaliação */}
-      <div className="mb-6 p-4 rounded-2xl border-[1.5px] border-orange bg-off-white/60">
-        <p className="text-sm font-bold text-gray-dark mb-1">⭐ Avalie sua última aula e ganhe XP</p>
-        <p className="text-xs text-gray-mid mb-3">Tecido Circense · 29 jul 2026 · Studio A · Camila Rocha</p>
-        <div className="flex items-center gap-2">
-          {[1, 2, 3, 4, 5].map((s) => (
-            <span key={s} className="text-2xl cursor-pointer hover:scale-110 transition-transform select-none text-orange">
-              {s <= 3 ? '★' : '☆'}
-            </span>
-          ))}
-          <span className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full bg-orange text-off-white">+XP</span>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-5 mb-5">
-        {/* Aulas da semana */}
-        <Card>
-          <CardTitle>Minhas aulas esta semana</CardTitle>
-          <div className="flex flex-col gap-3">
-            {AULAS_SEMANA.map((a) => (
-              <div key={`${a.dia}-${a.num}`} className="flex items-center gap-4 bg-gray-bg rounded-xl p-3.5">
-                <div className="text-center flex-shrink-0 w-10">
-                  <p className="text-[10px] font-bold text-gray-mid uppercase">{a.dia}</p>
-                  <p className="text-xl font-extrabold text-gray-dark leading-none"
-                    style={{ fontFamily: 'var(--font-montserrat)' }}>{a.num}</p>
-                </div>
-                <div className="w-px h-9 bg-black/8 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-dark truncate">{a.nome}</p>
-                  <p className="text-xs text-gray-mid mt-0.5 truncate">{a.sub}</p>
-                </div>
-                <span className={`text-xs font-bold px-3 py-1 rounded-full flex-shrink-0 ${a.statusColor}`}>
-                  {a.status === 'presente' ? '✓ Presente' : a.status}
-                </span>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        {/* Meu progresso */}
-        <Card>
-          <CardTitle>Meu progresso</CardTitle>
-          <div className="grid grid-cols-2 gap-3">
-            {METRICAS_PROGRESSO.map(({ valor, label, color }) => (
-              <div key={label} className="bg-gray-bg rounded-xl p-3.5 text-center">
-                <p className={`text-2xl font-extrabold ${color}`}
-                  style={{ fontFamily: 'var(--font-montserrat)' }}>{valor}</p>
-                <p className="text-[10px] text-gray-mid mt-1">{label}</p>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
-
-      {/* Aulas disponíveis */}
-      <Card>
-        <CardTitle>Disponíveis para você</CardTitle>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {DISPONIVEIS.map((d) => (
-            <div
-              key={d.nome}
-              className="border-[1.5px] border-black/[0.06] rounded-2xl p-4 flex flex-col gap-3 hover:border-bordo/25 hover:shadow-md transition-all"
-            >
-              <span className="text-3xl">{d.emoji}</span>
-              <div>
-                <p className="text-sm font-bold text-gray-dark">{d.nome}</p>
-                <p className="text-xs text-gray-mid mt-0.5">{d.sub}</p>
-              </div>
-              <button
-                disabled={d.lotada}
-                className={`w-full py-2 rounded-xl text-xs font-bold transition-all ${
-                  d.lotada
-                    ? 'bg-gray-bg text-gray-mid cursor-not-allowed'
-                    : 'bg-bordo text-off-white hover:bg-bordo-dk'
-                }`}
-              >
-                {d.lotada ? 'Lista de espera' : 'Inscrever-se'}
-              </button>
-            </div>
-          ))}
-        </div>
-      </Card>
-    </>
+    <AlunoHomeClient
+      profile={{
+        nome:    profile.nome,
+        xpTotal: profile.xpTotal,
+      }}
+      minhasAulas={minhasAulas}
+      aulasDisponiveis={aulasDisponiveis}
+      aulaPendente={aulaPendente}
+      metricas={{
+        taxaPresenca:   taxaPres,
+        totalHabilidades,
+        posicaoRanking: posicao,
+        totalAlunos:    rankingAlunos.length,
+        mesLabel:       agora.toLocaleDateString('pt-BR', { month: 'short' }),
+      }}
+    />
   )
 }
