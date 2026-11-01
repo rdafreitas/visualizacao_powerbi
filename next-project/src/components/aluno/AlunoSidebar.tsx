@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { label: 'Início',     href: '/pages/aluno/home',       icon: '🏠', fab: false },
   { label: 'Evolução',   href: '/pages/aluno/evolucao',   icon: '🌟', fab: false },
   { label: 'Agenda',     href: '/pages/aluno/agenda',     icon: '📅', fab: false },
+  { label: 'Ranking',    href: '/pages/aluno/ranking',    icon: '🏅', fab: false },
   { label: 'Pagamentos', href: '/pages/aluno/pagamentos', icon: '💳', fab: false },
   { label: 'Perfil',     href: '/pages/aluno/perfil',     icon: '👤', fab: false },
 ]
